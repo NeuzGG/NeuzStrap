@@ -286,19 +286,6 @@ namespace NeuzStrap.UI.Controls
             }
         }
 
-        static readonly System.Reflection.MethodInfo GetStateMethod =
-            typeof(Control).GetMethod("GetState", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null, new[] { typeof(int) }, null);
-
-        /// <summary>
-        /// The control's own Visible flag. Control.Visible also says false whenever a parent is hidden
-        /// (e.g. before the window is shown), which would make every row measure as zero.
-        /// </summary>
-        static bool IsSetVisible(Control c)
-        {
-            try { return GetStateMethod != null ? (bool)GetStateMethod.Invoke(c, new object[] { 0x2 /* STATE_VISIBLE */ }) : c.Visible; }
-            catch { return c.Visible; }
-        }
-
         /// <summary>Total height the children need at this width (without scrolling).</summary>
         public int MeasureContent(int width)
         {
@@ -307,7 +294,7 @@ namespace NeuzStrap.UI.Controls
             bool any = false;
             foreach (Control c in Controls)
             {
-                if (c == _bar || !IsSetVisible(c)) continue;
+                if (c == _bar || !c.IsSetVisible()) continue;
                 y += c.Margin.Top + (c is IAutoHeight ah ? ah.MeasureHeight(inner) : c.Height) + Gap;
                 any = true;
             }
@@ -325,7 +312,7 @@ namespace NeuzStrap.UI.Controls
                 int y = Padding.Top;
                 foreach (Control c in Controls)
                 {
-                    if (c == _bar || !IsSetVisible(c)) continue;
+                    if (c == _bar || !c.IsSetVisible()) continue;
                     int h = c is IAutoHeight ah ? ah.MeasureHeight(width) : c.Height;
                     y += c.Margin.Top;
                     placed.Add((c, y, h));
@@ -448,6 +435,22 @@ namespace NeuzStrap.UI.Controls
             Capture = false;
             Invalidate();
             base.OnMouseUp(e);
+        }
+    }
+
+    public static class ControlExtensions
+    {
+        static readonly System.Reflection.MethodInfo GetStateMethod =
+            typeof(Control).GetMethod("GetState", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null, new[] { typeof(int) }, null);
+
+        /// <summary>
+        /// The control's own Visible flag. Control.Visible also says false whenever a parent is hidden
+        /// (e.g. before a page or window is shown), which makes layout code measure things as zero.
+        /// </summary>
+        public static bool IsSetVisible(this Control c)
+        {
+            try { return GetStateMethod != null ? (bool)GetStateMethod.Invoke(c, new object[] { 0x2 /* STATE_VISIBLE */ }) : c.Visible; }
+            catch { return c.Visible; }
         }
     }
 

@@ -63,6 +63,7 @@ namespace NeuzStrap.Launch
                 try { ProtocolHandler.Register(Paths.InstalledExe); }
                 catch (Exception ex) { Logger.Warn("Launch", "Couldn't re-register links: " + ex.Message); }
             }
+            if (_mode == LaunchMode.Play) OfficialShortcuts.KeepTakenOver();
 
             string guid;
             using (var gate = await AcquireInstallGateAsync().ConfigureAwait(true))
@@ -92,6 +93,15 @@ namespace NeuzStrap.Launch
                 _ui.SetStatus("Freeing up memory\u2026");
                 long freed = await Task.Run(() => GameBooster.FreeMemory(), _ct).ConfigureAwait(true);
                 if (freed > 0) _ui.SetProgress(null, $"Freed {Utils.FormatBytes(freed)} of RAM");
+            }
+
+            // A Roblox that's already open (even one started without NeuzStrap) would be replaced by this
+            // launch anyway, and it overwrites the in-game settings file when it exits. Close it first.
+            if (GameSettingsFile.HasChanges(_s) && RobloxProcess.IsPlayerRunning())
+            {
+                _ui.SetStatus("Closing the Roblox that's already open\u2026");
+                _ui.SetProgress(null, "So your settings apply to the new one");
+                await RobloxProcess.CloseAllPlayersAsync(TimeSpan.FromSeconds(8), _ct).ConfigureAwait(true);
             }
 
             await Task.Run(() => GameSettingsFile.Apply(_s), _ct).ConfigureAwait(true);

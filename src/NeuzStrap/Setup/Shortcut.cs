@@ -28,6 +28,29 @@ namespace NeuzStrap.Setup
             }
         }
 
+        /// <summary>Reads a shortcut's target and arguments (null if it can't be read).</summary>
+        public static (string Target, string Arguments)? Read(string lnkPath)
+        {
+            var link = (IShellLinkW)new ShellLink();
+            try
+            {
+                ((IPersistFile)link).Load(lnkPath, 0 /* STGM_READ */);
+                var target = new StringBuilder(1024);
+                link.GetPath(target, target.Capacity, IntPtr.Zero, 0);
+                var args = new StringBuilder(2048);
+                link.GetArguments(args, args.Capacity);
+                return (target.ToString(), args.ToString());
+            }
+            catch
+            {
+                return null;
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(link);
+            }
+        }
+
         public static void Delete(string lnkPath)
         {
             try { if (File.Exists(lnkPath)) File.Delete(lnkPath); } catch { }

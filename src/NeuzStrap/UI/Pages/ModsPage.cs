@@ -60,10 +60,7 @@ namespace NeuzStrap.UI.Pages
                 ? $"Using \"{S.CustomFontName}\" for all in-game text (except Chinese/Japanese/Korean characters)."
                 : "Replace every font in Roblox with one you like (.ttf or .otf).";
             _removeFont.Visible = has;
-            int width = 0;
-            foreach (System.Windows.Forms.Control c in _fontButtons.Controls)
-                if (c.Visible) width += c.Width + (width > 0 ? Theme.S(8) : 0);
-            _fontButtons.Size = new System.Drawing.Size(width, Theme.S(34));
+            _fontButtons.FitToButtons();
             _fontRow.PerformLayout();
             PerformLayout();
         }

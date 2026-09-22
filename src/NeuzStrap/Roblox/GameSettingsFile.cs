@@ -13,14 +13,19 @@ namespace NeuzStrap.Roblox
     /// </summary>
     public static class GameSettingsFile
     {
+        /// <summary>The values Roblox's own "Maximum Frame Rate" menu offers (anything else gets reset by Roblox).</summary>
+        public static readonly int[] FramerateOptions = { 60, 120, 144, 240 };
+
         public static bool Exists => File.Exists(Paths.GlobalBasicSettings);
+
+        static bool WantsFps(Settings s) => Array.IndexOf(FramerateOptions, s.FramerateCap) >= 0;
+
+        /// <summary>True when the current settings change something in Roblox's settings file.</summary>
+        public static bool HasChanges(Settings s) => s.GraphicsQualityLock > 0 || s.OptimizationMode >= 0 || WantsFps(s);
 
         public static void Apply(Settings s)
         {
-            bool wantsQuality = s.GraphicsQualityLock > 0;
-            bool wantsMode = s.OptimizationMode >= 0;
-            bool wantsFps = s.FramerateCap != 0;
-            if (!wantsQuality && !wantsMode && !wantsFps) return;
+            if (!HasChanges(s)) return;
 
             string path = Paths.GlobalBasicSettings;
             if (!File.Exists(path))
@@ -40,7 +45,7 @@ namespace NeuzStrap.Roblox
         {
             bool wantsQuality = s.GraphicsQualityLock > 0;
             bool wantsMode = s.OptimizationMode >= 0;
-            bool wantsFps = s.FramerateCap != 0;
+            bool wantsFps = WantsFps(s);
             try
             {
                 string backup = path + ".neuzstrap.bak";

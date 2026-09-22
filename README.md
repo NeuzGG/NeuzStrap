@@ -71,7 +71,8 @@ playable on a weak PC?**
 ### 🔧 A solid bootstrapper
 - Downloads Roblox from **Roblox's official servers** with MD5 checks, 3 parallel downloads, **resumable** files and automatic mirror fallback.
 - Checks free disk space first, keeps playing on your current version if an update fails, and works offline once installed.
-- Takes the Play button back if the official launcher grabs it. The uninstaller hands it back to the official launcher.
+- Takes the Play button back if the official launcher grabs it, and can make the official "Roblox Player" shortcuts open
+  through NeuzStrap too. The uninstaller puts both back.
 
 <p align="center">
   <img src="docs/screenshots/bootstrapper.png" width="420" alt="Launch window">

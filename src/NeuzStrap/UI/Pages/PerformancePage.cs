@@ -12,6 +12,7 @@ namespace NeuzStrap.UI.Pages
     public sealed class PerformancePage : Page, IProfileAware
     {
         readonly ProfileGrid _grid;
+        readonly SettingRow _fpsRow;
 
         public override string Title => "Performance";
         public override string Subtitle => "Pick a profile, or fine-tune every option. Applied each time you press Play.";
@@ -26,8 +27,8 @@ namespace NeuzStrap.UI.Pages
             DropdownRow("Optimization mode", "Roblox's own Performance / Balanced / Quality switch.",
                 new Dropdown(200).Add("Don't change", -1).Add("Performance", 0).Add("Balanced", 1).Add("Quality", 2),
                 () => S.OptimizationMode, v => S.OptimizationMode = (int)v, Glyph.Speed, true);
-            DropdownRow("FPS cap", "A steady 60 feels smoother than a jumpy 40-90, and keeps laptops cooler.",
-                new Dropdown(200).Add("Don't change", 0).Add("30 FPS", 30).Add("60 FPS", 60).Add("144 FPS", 144).Add("240 FPS", 240),
+            _fpsRow = DropdownRow("FPS cap", FpsDescription(0),
+                new Dropdown(200).Add("Don't change", 0).Add("60 FPS", 60).Add("120 FPS", 120).Add("144 FPS", 144).Add("240 FPS", 240),
                 () => S.FramerateCap, v => S.FramerateCap = (int)v, Glyph.History, true);
 
             Section("Rendering", "Uses only FastFlags on Roblox's official allowlist, so it's safe.");
@@ -58,6 +59,23 @@ namespace NeuzStrap.UI.Pages
             Section("Display");
             ToggleRow("Exclusive fullscreen", "Alt+Enter uses true fullscreen. Can add a few FPS and lower input delay on weak PCs.", () => S.ExclusiveFullscreen, v => S.ExclusiveFullscreen = v, null, true);
             ToggleRow("Ignore display scaling", "For laptops set to 125%/150% scaling: menus render smaller and sharper.", () => S.DisableDpiScaling, v => S.DisableDpiScaling = v, null, true);
+        }
+
+        static string FpsDescription(int refreshHz) =>
+            "Roblox's own Maximum Frame Rate (default 60). A steady 60 feels smoother than a jumpy 40-90 on weak PCs. " +
+            (refreshHz > 0
+                ? $"Your screen runs at {refreshHz} Hz, so you'll see at most {refreshHz} FPS."
+                : "Above 60 only helps on a high refresh rate screen.");
+
+        public override void OnNavigatedTo()
+        {
+            _ = ShowRefreshRateAsync();
+        }
+
+        async System.Threading.Tasks.Task ShowRefreshRateAsync()
+        {
+            var sys = await System.Threading.Tasks.Task.Run(() => SystemInfo.Get());
+            if (!IsDisposed) _fpsRow.Description = FpsDescription(sys.RefreshRateHz);
         }
 
         static Dropdown LevelDropdown()

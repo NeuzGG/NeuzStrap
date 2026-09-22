@@ -21,6 +21,7 @@ namespace NeuzStrap.UI
         readonly Label _title;
         readonly Label _subtitle;
         readonly Card _banner;
+        readonly Panel _bannerWrap;
         readonly Label _bannerText;
         readonly NButton _bannerButton;
         readonly List<NavItem> _nav = new List<NavItem>();
@@ -67,13 +68,13 @@ namespace NeuzStrap.UI
                 _bannerText.SetBounds(Theme.S(16), 0, _bannerButton.Left - Theme.S(24), _banner.Height);
                 _bannerText.TextAlign = ContentAlignment.MiddleLeft;
             };
-            var bannerWrap = new Panel { Dock = DockStyle.Top, Height = Theme.S(64), Padding = Theme.S(28, 12, 28, 0), Visible = false, BackColor = Theme.Bg };
-            bannerWrap.Controls.Add(_banner);
-            _banner.VisibleChanged += (_, __) => bannerWrap.Visible = _banner.Visible;
+            // hidden until an update shows up (set both: a hidden parent makes _banner.Visible read false)
+            _bannerWrap = new Panel { Dock = DockStyle.Top, Height = Theme.S(64), Padding = Theme.S(28, 12, 28, 0), Visible = false, BackColor = Theme.Bg };
+            _bannerWrap.Controls.Add(_banner);
 
             _root.Controls.Add(_pageHost);
             _root.Controls.Add(_header);
-            _root.Controls.Add(bannerWrap);
+            _root.Controls.Add(_bannerWrap);
 
             // -------- sidebar
             _sidebar = new Panel { Dock = DockStyle.Left, Width = Theme.S(236), BackColor = Theme.Sidebar, Padding = Theme.S(14, 0, 14, 16) };
@@ -258,6 +259,7 @@ namespace NeuzStrap.UI
             _pendingUpdate = update;
             _bannerText.Text = $"NeuzStrap {update.Tag} is out! You have v{AppInfo.VersionString}.";
             _banner.Visible = true;
+            _bannerWrap.Visible = true;
         }
 
         async Task InstallUpdateAsync()

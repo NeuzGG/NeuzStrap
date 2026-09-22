@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using NeuzStrap.Core;
 
 namespace NeuzStrap.Roblox
@@ -32,6 +35,43 @@ namespace NeuzStrap.Roblox
                 }
             }
             return dirs;
+        }
+
+        /// <summary>
+        /// Closes every running Roblox player (politely first, then forcefully after the timeout).
+        /// Starting a new Roblox replaces the old one anyway; closing it ourselves first lets us
+        /// apply the in-game settings without the old copy overwriting them when it exits.
+        /// </summary>
+        public static async Task<bool> CloseAllPlayersAsync(TimeSpan timeout, CancellationToken ct)
+        {
+            var procs = Process.GetProcessesByName(PlayerProcessName);
+            if (procs.Length == 0) return true;
+            try
+            {
+                Logger.Info("RobloxProcess", $"Closing {procs.Length} running Roblox window(s) before launching");
+                foreach (var p in procs)
+                    try { p.CloseMainWindow(); } catch { }
+
+                var sw = Stopwatch.StartNew();
+                while (sw.Elapsed < timeout && procs.Any(p => !HasExited(p)))
+                    await Task.Delay(250, ct).ConfigureAwait(true);
+
+                foreach (var p in procs.Where(p => !HasExited(p)))
+                {
+                    Logger.Warn("RobloxProcess", $"Roblox (pid {p.Id}) didn't close in time, ending it");
+                    try { p.Kill(); p.WaitForExit(3000); } catch { }
+                }
+                return procs.All(HasExited);
+            }
+            finally
+            {
+                foreach (var p in procs) p.Dispose();
+            }
+        }
+
+        static bool HasExited(Process p)
+        {
+            try { return p.HasExited; } catch { return true; }
         }
 
         public static Process Launch(string versionDir, string arguments)

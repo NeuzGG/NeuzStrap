@@ -32,6 +32,8 @@ namespace NeuzStrap.Boost
         public int BatteryPercent { get; set; } = -1;
         public string WindowsName { get; set; } = "Windows";
         public long SystemDriveFreeBytes { get; set; }
+        /// <summary>Highest current refresh rate of any display (0 if unknown).</summary>
+        public int RefreshRateHz { get; set; }
 
         public PerformanceProfile Recommended { get; set; } = PerformanceProfile.Balanced;
         public string RecommendationReason { get; set; } = "";
@@ -70,6 +72,7 @@ namespace NeuzStrap.Boost
                 OnBattery = true,
                 WindowsName = "Windows 11 24H2",
                 SystemDriveFreeBytes = 40L * 1024 * 1024 * 1024,
+                RefreshRateHz = 60,
             };
             Recommend(demo);
             lock (CacheLock) _cached = demo;
@@ -90,7 +93,8 @@ namespace NeuzStrap.Boost
             info.TotalRamBytes = (long)mem.ullTotalPhys;
             info.AvailableRamBytes = (long)mem.ullAvailPhys;
 
-            info.Gpus = DetectGpus();
+            info.Gpus = DetectGpus(out int refreshHz);
+            info.RefreshRateHz = refreshHz;
 
             if (GetSystemPowerStatus(out var ps))
             {
@@ -154,19 +158,21 @@ namespace NeuzStrap.Boost
             }
         }
 
-        static List<GpuInfo> DetectGpus()
+        static List<GpuInfo> DetectGpus(out int refreshHz)
         {
             var result = new List<GpuInfo>();
             var vram = ReadVramFromRegistry();
+            refreshHz = 0;
             try
             {
-                using (var searcher = new ManagementObjectSearcher("SELECT Name, AdapterRAM FROM Win32_VideoController"))
+                using (var searcher = new ManagementObjectSearcher("SELECT Name, AdapterRAM, CurrentRefreshRate FROM Win32_VideoController"))
                 using (var results = searcher.Get())
                 {
                     foreach (ManagementObject mo in results)
                     {
                         using (mo)
                         {
+                            try { refreshHz = Math.Max(refreshHz, Convert.ToInt32(mo["CurrentRefreshRate"] ?? 0)); } catch { }
                             string name = CleanName(mo["Name"] as string ?? "");
                             if (name.Length == 0 || IsVirtualAdapter(name) || result.Any(g => g.Name == name)) continue;
                             long mem = vram.TryGetValue(name, out var v) ? v : Convert.ToInt64(mo["AdapterRAM"] ?? 0L);

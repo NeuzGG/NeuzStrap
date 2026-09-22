@@ -37,7 +37,7 @@ namespace NeuzStrap.Core
         public int GraphicsQualityLock { get; set; } = 0;
         /// <summary>-1 = don't touch, 0 = Performance, 1 = Balanced, 2 = Quality.</summary>
         public int OptimizationMode { get; set; } = 1;
-        /// <summary>0 = don't touch, otherwise the in-game "Maximum Frame Rate" value.</summary>
+        /// <summary>0 = don't touch, otherwise the in-game "Maximum Frame Rate" value (60, 120, 144 or 240).</summary>
         public int FramerateCap { get; set; } = 0;
 
         // rendering (written as allowlisted FastFlags)

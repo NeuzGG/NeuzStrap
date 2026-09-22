@@ -21,6 +21,8 @@ namespace NeuzStrap.UI
         readonly Toggle _desktop = new Toggle();
         readonly Toggle _profile = new Toggle();
         readonly Toggle _import = new Toggle();
+        readonly Toggle _takeOver = new Toggle();
+        readonly System.Collections.Generic.List<string> _officialShortcuts;
         readonly NButton _install;
         readonly string _bloxstrapFlags;
         SystemInfo _sys;
@@ -59,6 +61,15 @@ namespace NeuzStrap.UI
 
             _desktop.SetSilently(_mode == Mode.Fresh || AppInstaller.HasDesktopShortcut);
             stack.Controls.Add(new SettingRow("Desktop shortcut", "A \"Roblox (NeuzStrap)\" icon that starts Roblox straight away.", _desktop, Glyph.Monitor));
+
+            _officialShortcuts = forceFreshInstall ? new System.Collections.Generic.List<string>() : OfficialShortcuts.Find();
+            if (_officialShortcuts.Count > 0)
+            {
+                _takeOver.SetSilently(true);
+                stack.Controls.Add(new SettingRow("Make my Roblox shortcuts open NeuzStrap",
+                    $"Found {_officialShortcuts.Count} official Roblox shortcut(s) that would skip NeuzStrap and its tweaks. Uninstalling puts them back.",
+                    _takeOver, Glyph.Link));
+            }
 
             if (_mode == Mode.Fresh && _bloxstrapFlags != null)
             {
@@ -137,7 +148,12 @@ namespace NeuzStrap.UI
             try
             {
                 bool desktop = _desktop.Checked;
-                await Task.Run(() => AppInstaller.Install(desktop));
+                bool takeOver = _takeOver.Checked && _officialShortcuts.Count > 0;
+                await Task.Run(() =>
+                {
+                    AppInstaller.Install(desktop);
+                    if (takeOver) OfficialShortcuts.TakeOver();
+                });
 
                 var s = Settings.Current;
                 if (_mode == Mode.Fresh && _profile.Checked)

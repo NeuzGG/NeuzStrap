@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NeuzStrap.Core;
 
 namespace NeuzStrap.Boost
@@ -30,6 +31,23 @@ namespace NeuzStrap.Boost
                     Title = "Graphics driver missing",
                     Detail = "Windows is using the \"Basic Display Adapter\", so Roblox runs on the CPU and lags badly. Install the driver from your laptop or chip maker's website (Intel, AMD or NVIDIA).",
                 });
+
+            if (!Paths.IsPortable && Setup.AppInstaller.IsInstalled)
+            {
+                var shortcuts = Setup.OfficialShortcuts.Find();
+                if (shortcuts.Count > 0)
+                {
+                    string names = string.Join(", ", shortcuts.Select(Describe).Distinct());
+                    list.Add(new CheckResult
+                    {
+                        Severity = CheckSeverity.Warning,
+                        Title = "Roblox shortcuts skip NeuzStrap",
+                        Detail = $"{names} start Roblox without NeuzStrap, so your tweaks don't apply. Make them open through NeuzStrap (undone if you ever uninstall).",
+                        FixLabel = "Fix shortcuts",
+                        Fix = () => Setup.OfficialShortcuts.TakeOver(),
+                    });
+                }
+            }
 
             if (sys.OnBattery)
                 list.Add(new CheckResult
@@ -96,6 +114,13 @@ namespace NeuzStrap.Boost
                 });
 
             return list;
+        }
+
+        static string Describe(string lnk)
+        {
+            string name = System.IO.Path.GetFileNameWithoutExtension(lnk);
+            string where = lnk.StartsWith(Paths.Desktop, StringComparison.OrdinalIgnoreCase) ? "desktop" : "Start menu";
+            return $"\"{name}\" ({where})";
         }
     }
 }

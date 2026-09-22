@@ -158,12 +158,26 @@ namespace NeuzStrap.UI.Controls
 
         public int MeasureHeight(int width) => Arrange(width, false);
 
+        /// <summary>Sizes the bar to fit its visible buttons on one line (for use as a row's editor).</summary>
+        public void FitToButtons()
+        {
+            int w = 0, h = 0;
+            foreach (Control c in Controls)
+            {
+                if (!c.IsSetVisible()) continue;
+                w += (w > 0 ? Theme.S(8) : 0) + c.Width;
+                h = Math.Max(h, c.Height);
+            }
+            Size = new Size(w, h);
+            PerformLayout();
+        }
+
         int Arrange(int width, bool apply)
         {
             int x = 0, y = 0, gap = Theme.S(8), rowH = 0;
             foreach (Control c in Controls)
             {
-                if (!c.Visible) continue;
+                if (!c.IsSetVisible()) continue;
                 if (x > 0 && x + c.Width > width) { x = 0; y += rowH + gap; rowH = 0; }
                 if (apply) c.Location = new Point(x, y);
                 x += c.Width + gap;

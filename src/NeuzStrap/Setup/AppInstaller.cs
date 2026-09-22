@@ -121,6 +121,7 @@ namespace NeuzStrap.Setup
             PowerPlan.Restore();
             ProtocolHandler.Unregister();
             GameBooster.RemoveAllExeTweaks();
+            OfficialShortcuts.Restore();
 
             Shortcut.Delete(DesktopShortcut);
             Shortcut.Delete(StartMenuPlayShortcut);

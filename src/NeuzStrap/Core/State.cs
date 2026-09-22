@@ -34,6 +34,9 @@ namespace NeuzStrap.Core
 
         public List<GameHistoryEntry> History { get; set; } = new List<GameHistoryEntry>();
 
+        /// <summary>Official Roblox shortcuts NeuzStrap repointed (path -> original target), restored on uninstall.</summary>
+        public Dictionary<string, Setup.ShortcutBackup> TakenOverShortcuts { get; set; } = new Dictionary<string, Setup.ShortcutBackup>(StringComparer.OrdinalIgnoreCase);
+
         /// <summary>Power plan to restore if NeuzStrap was closed before Roblox exited.</summary>
         public string PendingPowerSchemeRestore { get; set; } = "";
         public string PendingPowerOverlayRestore { get; set; } = "";
@@ -59,6 +62,8 @@ namespace NeuzStrap.Core
                     Current = Json.Deserialize<State>(File.ReadAllText(Paths.StateFile, Encoding.UTF8)) ?? new State();
                     Current.History ??= new List<GameHistoryEntry>();
                     Current.PreviousProtocolCommands ??= new Dictionary<string, string>();
+                    Current.TakenOverShortcuts = new Dictionary<string, Setup.ShortcutBackup>(
+                        Current.TakenOverShortcuts ?? new Dictionary<string, Setup.ShortcutBackup>(), StringComparer.OrdinalIgnoreCase);
                     return;
                 }
             }

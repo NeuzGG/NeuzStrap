@@ -191,9 +191,14 @@ namespace NeuzStrap.Launch
             _serverItem = new ToolStripMenuItem("Not in a server") { Enabled = false };
             _copyLinkItem = new ToolStripMenuItem("Copy invite link to this server", null, (_, __) => CopyLink()) { Enabled = false };
             var open = new ToolStripMenuItem("Open NeuzStrap", null, (_, __) => OpenSettings());
+            var closeRoblox = new ToolStripMenuItem("Close Roblox", null, async (_, __) =>
+            {
+                try { await RobloxProcess.CloseEverythingAsync(); }
+                catch (Exception ex) { Logger.Error("PlaySession", ex, "Close Roblox failed"); }
+            });
             var stop = new ToolStripMenuItem("Stop background features", null, (_, __) => _cts.Cancel());
 
-            menu.Items.AddRange(new ToolStripItem[] { header, _gameItem, _serverItem, new ToolStripSeparator(), _copyLinkItem, open, new ToolStripSeparator(), stop });
+            menu.Items.AddRange(new ToolStripItem[] { header, _gameItem, _serverItem, new ToolStripSeparator(), _copyLinkItem, open, closeRoblox, new ToolStripSeparator(), stop });
 
             _tray = new NotifyIcon
             {

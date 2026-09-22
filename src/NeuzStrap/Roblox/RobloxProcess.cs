@@ -69,6 +69,42 @@ namespace NeuzStrap.Roblox
             }
         }
 
+        /// <summary>
+        /// "Close Roblox" button: closes every Roblox player (official copies too), force-ends any that
+        /// don't close within a few seconds, and removes the crash handler Roblox leaves running.
+        /// Roblox Studio is never touched. Returns how many player windows were open.
+        /// </summary>
+        public static async Task<int> CloseEverythingAsync(CancellationToken ct = default)
+        {
+            int players;
+            using (var probe = new DisposableList(Process.GetProcessesByName(PlayerProcessName))) players = probe.Items.Length;
+            if (players > 0) await CloseAllPlayersAsync(TimeSpan.FromSeconds(4), ct).ConfigureAwait(true);
+
+            foreach (var p in Process.GetProcessesByName("RobloxCrashHandler"))
+            {
+                using (p)
+                {
+                    try
+                    {
+                        string dir = Path.GetDirectoryName(GetImagePath(p.Id) ?? "");
+                        bool playerFolder = dir.Length > 0 && File.Exists(Path.Combine(dir, "RobloxPlayerBeta.exe"))
+                                            && !File.Exists(Path.Combine(dir, "RobloxStudioBeta.exe"));
+                        if (playerFolder) p.Kill();
+                    }
+                    catch { }
+                }
+            }
+            Logger.Info("RobloxProcess", $"Close Roblox: {players} player window(s) closed");
+            return players;
+        }
+
+        sealed class DisposableList : IDisposable
+        {
+            public Process[] Items { get; }
+            public DisposableList(Process[] items) { Items = items; }
+            public void Dispose() { foreach (var p in Items) p.Dispose(); }
+        }
+
         static bool HasExited(Process p)
         {
             try { return p.HasExited; } catch { return true; }

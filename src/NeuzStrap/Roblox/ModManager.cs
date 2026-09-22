@@ -14,7 +14,7 @@ namespace NeuzStrap.Roblox
     public static class ModManager
     {
         const string ManifestName = ".neuzstrap-mods.txt";
-        const string BackupFolder = ".neuzstrap-backup";
+        public const string BackupFolder = ".neuzstrap-backup";
         public const string CustomFontAsset = "NeuzCustomFont.ttf";
 
         class ModFile
@@ -34,6 +34,8 @@ namespace NeuzStrap.Roblox
             var desired = CollectUserMods();
             if (s.UseCustomFont && File.Exists(Paths.CustomFontFile))
                 desired.AddRange(BuildFontMod(versionDir));
+            foreach (var kv in CursorMod.Build(s, versionDir))
+                desired.Add(new ModFile { RelativePath = kv.Key, Content = kv.Value });
 
             // later entries win (e.g. the font mod over a user file with the same path)
             var byPath = new Dictionary<string, ModFile>(StringComparer.OrdinalIgnoreCase);

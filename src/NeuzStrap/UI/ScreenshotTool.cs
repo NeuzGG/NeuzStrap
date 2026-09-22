@@ -17,10 +17,14 @@ namespace NeuzStrap.UI
     {
         static readonly string[] Pages = { "home", "performance", "booster", "fastflags", "mods", "activity", "tools", "settings", "about" };
 
+        /// <summary>Demo screenshots always look the same (e.g. "Play" even if Roblox happens to be open).</summary>
+        internal static bool DemoMode { get; private set; }
+
         public static void Run(string folder, bool demo = false)
         {
             folder = string.IsNullOrEmpty(folder) ? Path.Combine(Paths.Base, "Screenshots") : Path.GetFullPath(folder);
             Directory.CreateDirectory(folder);
+            DemoMode = demo;
             if (demo) LoadDemoData();
 
             // Run inside a real message loop: Application.DoEvents() alone uninstalls the WinForms
@@ -104,6 +108,7 @@ namespace NeuzStrap.UI
             Boost.Profiles.Apply(PerformanceProfile.Potato, s, Boost.SystemInfo.Get());
             s.CustomFastFlags["FIntDebugForceMSAASamples"] = "1";
             s.CustomFastFlags["FFlagSomeOldTweak"] = "True";
+            s.CursorStyle = CursorStyle.Sakura;
 
             var st = State.Current;
             st.RobloxVersionName = "0.739.0.7390687";

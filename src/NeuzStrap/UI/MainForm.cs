@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NeuzStrap.Core;
+using NeuzStrap.Roblox;
 using NeuzStrap.Setup;
 using NeuzStrap.UI.Controls;
 using NeuzStrap.UI.Pages;
@@ -27,6 +28,8 @@ namespace NeuzStrap.UI
         readonly List<NavItem> _nav = new List<NavItem>();
         readonly Dictionary<string, Func<Page>> _factories = new Dictionary<string, Func<Page>>();
         readonly Dictionary<string, Page> _pages = new Dictionary<string, Page>();
+        readonly NButton _sidebarPlay;
+        readonly Timer _robloxWatch;
         Page _current;
         AppUpdate _pendingUpdate;
 
@@ -100,16 +103,86 @@ namespace NeuzStrap.UI
                 y += item.Height + Theme.S(4);
             }
 
-            var play = new NButton("Play Roblox", ButtonKind.Primary, Glyph.Play) { Height = Theme.S(46), Radius = Theme.S(10) };
+            var play = _sidebarPlay = new NButton("Play Roblox", ButtonKind.Primary, Glyph.Play) { Height = Theme.S(46), Radius = Theme.S(10) };
             play.Font = Theme.Title;
-            play.Click += (_, __) => PlayAndClose();
+            play.Click += (_, __) => PlayOrCloseRoblox();
             _sidebar.Controls.Add(play);
             void PlacePlay() => play.SetBounds(Theme.S(14), _sidebar.Height - Theme.S(16) - play.Height, _sidebar.Width - Theme.S(28), play.Height);
             _sidebar.Layout += (_, __) => PlacePlay();
             PlacePlay();
 
+            // Play turns into "Close Roblox" while Roblox is open (a cheap check, only while this window is open)
+            _robloxWatch = new Timer { Interval = 1500 };
+            _robloxWatch.Tick += (_, __) => RefreshRobloxState();
+            RefreshRobloxState();
+            _robloxWatch.Start();
+
             Theme.AccentChanged += OnAccentChanged;
             Navigate(_factories.ContainsKey(startPage) ? startPage : "home");
+        }
+
+        // ------------------------------------------------------------------ Play / Close Roblox
+
+        public bool RobloxRunning { get; private set; }
+        public event Action RobloxStateChanged;
+
+        void RefreshRobloxState()
+        {
+            bool running = !ScreenshotTool.DemoMode && RobloxProcess.IsPlayerRunning();
+            if (running == RobloxRunning && _sidebarPlay.Text.Length > 0 && !_closingRoblox) return;
+            RobloxRunning = running;
+            StylePlayButton(_sidebarPlay, running);
+            RobloxStateChanged?.Invoke();
+        }
+
+        /// <summary>Shows "Play Roblox" or "Close Roblox" on a button.</summary>
+        public void StylePlayButton(NButton b, bool running)
+        {
+            b.Text = _closingRoblox ? "Closing\u2026" : running ? "Close Roblox" : "Play Roblox";
+            b.Kind = running || _closingRoblox ? ButtonKind.Danger : ButtonKind.Primary;
+            b.Glyph = running || _closingRoblox ? Glyph.Stop : Glyph.Play;
+            b.Enabled = !_closingRoblox;
+        }
+
+        bool _closingRoblox;
+
+        public async void PlayOrCloseRoblox(string uri = null)
+        {
+            if (_closingRoblox) return;
+            if (!RobloxProcess.IsPlayerRunning())
+            {
+                PlayAndClose(uri);
+                return;
+            }
+
+            if (!Dialog.Confirm(this, "Close Roblox?", "Every Roblox window closes right away, so you'll leave the game you're in. Roblox Studio isn't affected.",
+                                "Close Roblox", "Keep playing", danger: true))
+                return;
+
+            _closingRoblox = true;
+            RefreshStateNow();
+            try
+            {
+                await RobloxProcess.CloseEverythingAsync();
+                Toast.Show("Roblox closed", "Everything Roblox had open is gone. Press Play whenever you want to jump back in.", null, 4);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("MainForm", ex, "Close Roblox failed");
+                Dialog.Error(this, "Couldn't close Roblox", ex.Message);
+            }
+            finally
+            {
+                _closingRoblox = false;
+                if (!IsDisposed) RefreshStateNow();
+            }
+        }
+
+        void RefreshStateNow()
+        {
+            RobloxRunning = !ScreenshotTool.DemoMode && RobloxProcess.IsPlayerRunning();
+            StylePlayButton(_sidebarPlay, RobloxRunning);
+            RobloxStateChanged?.Invoke();
         }
 
         void Register(string key, string label, string glyph, Func<Page> factory)
@@ -216,6 +289,8 @@ namespace NeuzStrap.UI
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             Theme.AccentChanged -= OnAccentChanged;
+            _robloxWatch.Stop();
+            _robloxWatch.Dispose();
             Settings.Save();
             base.OnFormClosed(e);
         }

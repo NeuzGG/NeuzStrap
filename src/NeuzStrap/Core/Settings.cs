@@ -11,6 +11,7 @@ namespace NeuzStrap.Core
     public enum MeshDetail { Automatic, Lowest }
     public enum PriorityLevel { Normal, AboveNormal, High }
     public enum GpuPreference { WindowsDefault, HighPerformance, PowerSaving }
+    public enum CursorStyle { RobloxDefault, Classic, Sakura, BigArrow, Dot, Crosshair, Custom, Rgb }
 
     /// <summary>
     /// Everything the user can change. Saved as Settings.json.
@@ -81,6 +82,7 @@ namespace NeuzStrap.Core
         public Dictionary<string, string> CustomFastFlags { get; set; } = new Dictionary<string, string>(StringComparer.Ordinal);
         public bool UseCustomFont { get; set; } = false;
         public string CustomFontName { get; set; } = "";
+        public CursorStyle CursorStyle { get; set; } = CursorStyle.RobloxDefault;
 
         // ---------------------------------------------------------------- persistence
 

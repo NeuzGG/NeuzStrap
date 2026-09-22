@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.1.0 (2026-09-22)
+
+- New: **Close Roblox**. While Roblox is open, the Play buttons turn into a Close Roblox button. It closes every Roblox
+  window (force-closing any that hang) and removes the crash handler Roblox leaves behind. Roblox Studio isn't touched.
+  Also available from the tray icon while you play.
+- New: **Custom cursor** on the Mods page. Pick Classic, Sakura, Big arrow, Dot or Crosshair (drawn by NeuzStrap), or
+  use your own image. Roblox's own cursor comes back when you switch to Default.
+- New: **RGB cursor**. Roblox's own arrow, hand pointer and shift-lock circle, recolored as a rainbow.
+
 ## v1.0.1 (2026-09-22)
 
 - Fixed: the **Choose font…** button on the Mods page didn't show up.

@@ -65,7 +65,10 @@ playable on a weak PC?**
 - **Cleaner** for logs, temp files, old versions, download caches, leftover official-launcher copies and the asset cache
   (it can be gigabytes on a small SSD).
 - **Repair Roblox**, update on demand, and a check that the website's Play button still opens NeuzStrap.
-- **Mods**: drop files into the Mods folder to replace sounds and textures, or use a **custom font**. Originals come back automatically.
+- **Mods**: drop files into the Mods folder to replace sounds and textures, use a **custom font**, or pick a
+  **custom cursor** (built-in styles, an RGB rainbow version of Roblox's own cursors, or your own image).
+  Originals come back automatically.
+- **Close Roblox** button: while Roblox is open, Play turns into Close, which shuts every Roblox window and leftover process.
 - **FastFlag editor** that marks which flags Roblox accepts, with import from JSON or straight from Bloxstrap.
 
 ### 🔧 A solid bootstrapper
@@ -73,6 +76,10 @@ playable on a weak PC?**
 - Checks free disk space first, keeps playing on your current version if an update fails, and works offline once installed.
 - Takes the Play button back if the official launcher grabs it, and can make the official "Roblox Player" shortcuts open
   through NeuzStrap too. The uninstaller puts both back.
+
+<p align="center">
+  <img src="docs/screenshots/mods.png" width="620" alt="Mods page with custom cursors">
+</p>
 
 <p align="center">
   <img src="docs/screenshots/bootstrapper.png" width="420" alt="Launch window">

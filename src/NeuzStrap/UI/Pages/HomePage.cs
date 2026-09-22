@@ -170,10 +170,27 @@ namespace NeuzStrap.UI.Pages
                 _play = new NButton("Play Roblox", ButtonKind.Primary, Glyph.Play) { Font = Theme.Title, Radius = Theme.S(10) };
                 _play.FitToText(Theme.S(170));
                 _play.Height = Theme.S(46);
-                _play.Click += (_, __) => main.PlayAndClose();
+                _play.Click += (_, __) => main.PlayOrCloseRoblox();
+                _main = main;
+                main.StylePlayButton(_play, main.RobloxRunning);
+                main.RobloxStateChanged += OnRobloxStateChanged;
                 _update = new NButton("Check for Roblox updates", ButtonKind.Ghost, Glyph.Refresh).FitToText();
                 _update.Click += (_, __) => Launcher.UpdateRoblox();
                 Controls.AddRange(new Control[] { _line1, _line2, _play, _update });
+            }
+
+            readonly MainForm _main;
+
+            void OnRobloxStateChanged()
+            {
+                if (IsDisposed) return;
+                _main.StylePlayButton(_play, _main.RobloxRunning);
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing && _main != null) _main.RobloxStateChanged -= OnRobloxStateChanged;
+                base.Dispose(disposing);
             }
 
             public void RefreshInfo()

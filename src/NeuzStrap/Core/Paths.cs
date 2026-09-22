@@ -24,6 +24,7 @@ namespace NeuzStrap.Core
         public static string SettingsFile => Path.Combine(Base, "Settings.json");
         public static string StateFile => Path.Combine(Base, "State.json");
         public static string CustomFontFile => Path.Combine(Base, "CustomFont.ttf");
+        public static string CustomCursorFile => Path.Combine(Base, "CustomCursor.png");
 
         // Roblox's own per-user folder (settings, logs, caches) - shared with the official launcher.
         public static string RobloxData => Path.Combine(LocalAppData, "Roblox");

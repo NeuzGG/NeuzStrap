@@ -1,0 +1,16 @@
+# build output
+bin/
+obj/
+artifacts/
+TestResults/
+
+# local dev / test runs (portable copies, screenshots, downloaded Roblox builds)
+.dev/
+
+# IDEs
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.DotSettings.user

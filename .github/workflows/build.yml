@@ -1,0 +1,48 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: write # needed to publish releases on tags
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Test
+        run: dotnet test tests/NeuzStrap.Tests -c Release -nologo
+
+      - name: Build
+        run: dotnet build src/NeuzStrap -c Release -nologo
+
+      - name: Collect artifact
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force artifacts | Out-Null
+          Copy-Item src/NeuzStrap/bin/Release/net48/NeuzStrap.exe artifacts/
+          $hash = (Get-FileHash artifacts/NeuzStrap.exe -Algorithm SHA256).Hash
+          Set-Content artifacts/NeuzStrap.exe.sha256 "$hash  NeuzStrap.exe"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NeuzStrap
+          path: artifacts/
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/NeuzStrap.exe
+            artifacts/NeuzStrap.exe.sha256
+          generate_release_notes: true

@@ -140,6 +140,7 @@ namespace NeuzStrap.UI
         public const string Play = "\uE768";
         public const string Stop = "\uE71A";
         public const string Mouse = "\uE962";
+        public const string Keyboard = "\uE765";
         public const string Close = "\uE8BB";
         public const string ChevronDown = "\uE70D";
         public const string Check = "\uE73E";

@@ -17,7 +17,7 @@
     <DebugType>embedded</DebugType>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
 
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Product>NeuzStrap</Product>
     <Title>NeuzStrap</Title>
     <Description>A lightweight, potato-PC friendly Roblox launcher</Description>

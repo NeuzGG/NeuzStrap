@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.2.0 (2026-09-23)
+
+- New **On-screen** page.
+  - **FPS counter**: switches on Roblox's own FPS / ping / memory panel (the Shift+F5 one). NeuzStrap can't measure
+    Roblox's frame rate itself without injecting into the game, so it uses Roblox's counter instead.
+  - **Overlay** on top of the game with a **CPS counter** and a **keyboard display** (W, A, S, D, Space, Shift),
+    in your accent color or **rainbow**, in any of six positions and three sizes, with a live preview in the settings.
+    It's click-through, only shows while Roblox is in front, and can't appear over exclusive fullscreen.
+- New: **automatic updates**. NeuzStrap quietly installs new releases from GitHub in the background while Roblox
+  starts; the new version is used from your next launch. Turn it off under Settings.
+- New: Discord Rich Presence **"Join server" button**, so friends land in the exact server you're in
+  (hidden automatically in private servers).
+
 ## v1.1.0 (2026-09-22)
 
 - New: **Close Roblox**. While Roblox is open, the Play buttons turn into a Close Roblox button. It closes every Roblox

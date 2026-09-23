@@ -106,6 +106,19 @@ namespace NeuzStrap.Setup
             try { WriteUninstallEntry(Paths.InstalledExe); } catch { }
         }
 
+        /// <summary>After a silent auto-update, make Windows' apps list show the new version.</summary>
+        public static void EnsureUninstallEntryCurrent()
+        {
+            if (Paths.IsPortable || !IsInstalled || !Paths.IsRunningInstalledCopy) return;
+            try
+            {
+                using (var k = Registry.CurrentUser.OpenSubKey(UninstallKey))
+                    if ((k?.GetValue("DisplayVersion") as string) == AppInfo.VersionString) return;
+                WriteUninstallEntry(Paths.InstalledExe);
+            }
+            catch { }
+        }
+
         public static bool HasDesktopShortcut => File.Exists(DesktopShortcut);
 
         public static void SetDesktopShortcut(bool enabled)

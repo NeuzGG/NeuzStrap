@@ -59,7 +59,10 @@ playable on a weak PC?**
 - **Server location notice** with the distance to your server. Far server = lag, so rejoin for a closer one.
 - **Game history** with one-click rejoin from the Home page.
 - **Copy an invite link** to your exact server from the tray icon.
-- **Discord Rich Presence** showing your game and its icon, with no setup needed.
+- **Discord Rich Presence** showing your game and its icon, with no setup needed, plus a **Join server** button
+  friends can use to land in your exact server.
+- **On-screen extras**: Roblox's own FPS counter, plus a click-through overlay with a **CPS counter** and a
+  **keyboard display** (static or rainbow, six positions, three sizes).
 
 ### 🧹 Tools
 - **Cleaner** for logs, temp files, old versions, download caches, leftover official-launcher copies and the asset cache
@@ -72,6 +75,7 @@ playable on a weak PC?**
 - **FastFlag editor** that marks which flags Roblox accepts, with import from JSON or straight from Bloxstrap.
 
 ### 🔧 A solid bootstrapper
+- **Updates itself** from GitHub Releases in the background, so you always have the newest version without doing anything.
 - Downloads Roblox from **Roblox's official servers** with MD5 checks, 3 parallel downloads, **resumable** files and automatic mirror fallback.
 - Checks free disk space first, keeps playing on your current version if an update fails, and works offline once installed.
 - Takes the Play button back if the official launcher grabs it, and can make the official "Roblox Player" shortcuts open

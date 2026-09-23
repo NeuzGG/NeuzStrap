@@ -31,11 +31,13 @@ namespace NeuzStrap.Launch
         GameBooster.BackgroundCalmer _calmer;
         DiscordRpc _discord;
         GameSession _current;
+        OverlayWindow _overlay;
         bool _powerBoosted;
         bool _disposed;
 
         public static bool IsNeeded(Settings s) =>
-            s.ActivityTracking || s.DiscordRichPresence || s.ServerLocationNotice || s.CalmBackgroundApps || s.PowerBoost;
+            s.ActivityTracking || s.DiscordRichPresence || s.ServerLocationNotice || s.CalmBackgroundApps || s.PowerBoost
+            || (s.Overlay && (s.OverlayCps || s.OverlayKeys));
 
         public PlaySession(Process roblox, DateTime launchedUtc)
         {
@@ -55,7 +57,27 @@ namespace NeuzStrap.Launch
                 await Task.Run(() => _calmer.Calm()).ConfigureAwait(true);
             }
             if (_s.PowerBoost) _powerBoosted = PowerPlan.Boost();
+
+            if (_s.Overlay && (_s.OverlayCps || _s.OverlayKeys))
+            {
+                try
+                {
+                    _overlay = new OverlayWindow(_roblox);
+                    _overlay.Show();
+                    Logger.Info("PlaySession", "In-game overlay started");
+                }
+                catch (Exception ex) { Logger.Error("PlaySession", ex, "Couldn't start the overlay"); }
+            }
+
             GameBooster.TrimSelf();
+
+            // Update NeuzStrap itself quietly in the background; it takes effect next launch.
+            _ = Task.Run(async () =>
+            {
+                string tag = await AppUpdater.AutoUpdateAsync(_cts.Token).ConfigureAwait(false);
+                if (tag != null && !_disposed)
+                    _ui.Post(_ => Toast.Show("NeuzStrap updated", $"{tag} is installed and starts with your next launch.", null, 6), null);
+            });
 
             // Some Roblox builds reset their own priority while loading; nudge it again once.
             _ = Task.Delay(15000, _cts.Token).ContinueWith(t =>
@@ -127,7 +149,7 @@ namespace NeuzStrap.Launch
                         _discord = new DiscordRpc(_s.EffectiveDiscordApplicationId);
                         await _discord.ConnectAsync().ConfigureAwait(true);
                     }
-                    _discord.SetActivity(DiscordRpc.BuildActivity(g, details, _s.DiscordShowGameButton));
+                    _discord.SetActivity(DiscordRpc.BuildActivity(g, details, _s.DiscordShowGameButton, _s.DiscordShowJoinButton));
                 }
                 catch (Exception ex) { Logger.Warn("PlaySession", "Discord update failed: " + ex.Message); }
             }
@@ -251,6 +273,11 @@ namespace NeuzStrap.Launch
         {
             _disposed = true;
             _cts.Cancel();
+            if (_overlay != null)
+            {
+                try { if (!_overlay.IsDisposed) _overlay.Close(); } catch { }
+                _overlay = null;
+            }
             if (_tray != null)
             {
                 _tray.Visible = false;

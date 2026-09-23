@@ -89,6 +89,7 @@ namespace NeuzStrap.UI
             Register("booster", "Game Booster", Glyph.Bolt, () => new BoosterPage(this));
             Register("fastflags", "Fast Flags", Glyph.Flag, () => new FastFlagsPage(this));
             Register("mods", "Mods", Glyph.Puzzle, () => new ModsPage(this));
+            Register("overlay", "On-screen", Glyph.Monitor, () => new OverlayPage(this));
             Register("activity", "Activity & Discord", Glyph.Link, () => new ActivityPage(this));
             Register("tools", "Tools", Glyph.Repair, () => new ToolsPage(this));
             Register("settings", "Settings", Glyph.Settings, () => new SettingsPage(this));

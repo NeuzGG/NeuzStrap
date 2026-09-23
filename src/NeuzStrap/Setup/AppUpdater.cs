@@ -55,8 +55,41 @@ namespace NeuzStrap.Setup
             };
         }
 
+        /// <summary>
+        /// Quietly updates NeuzStrap in the background (used while Roblox is starting). The new version
+        /// is in place for the next launch; nothing restarts under the player's feet.
+        /// Returns the version it installed, or null if there was nothing to do.
+        /// </summary>
+        public static async Task<string> AutoUpdateAsync(CancellationToken ct = default)
+        {
+            var s = Settings.Current;
+            if (!s.AutoUpdate || !s.CheckForAppUpdates || !AppInfo.HasRepo || Paths.IsPortable || !AppInstaller.IsInstalled) return null;
+            if ((DateTime.UtcNow - State.Current.LastAppUpdateCheckUtc).TotalHours < 6) return null;
+
+            try
+            {
+                var update = await CheckAsync(ct).ConfigureAwait(false);
+                if (update == null) return null;
+                await DownloadAndSwapAsync(update, null, ct).ConfigureAwait(false);
+                return update.Tag;
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn("Updater", "Auto-update skipped: " + ex.Message);
+                return null;
+            }
+        }
+
         /// <summary>Downloads the new exe, swaps it with the installed one and restarts NeuzStrap.</summary>
         public static async Task InstallAsync(AppUpdate update, IProgress<double> progress, CancellationToken ct)
+        {
+            string target = await DownloadAndSwapAsync(update, progress, ct).ConfigureAwait(false);
+            Logger.Info("Updater", $"Restarting into {update.Tag}");
+            Process.Start(new ProcessStartInfo(target, "-updated") { UseShellExecute = false });
+        }
+
+        /// <summary>Downloads the release exe and puts it in place. Returns the path of the updated exe.</summary>
+        static async Task<string> DownloadAndSwapAsync(AppUpdate update, IProgress<double> progress, CancellationToken ct)
         {
             string tmp = Path.Combine(Paths.Base, "NeuzStrap.update.exe");
             using (var req = new HttpRequestMessage(HttpMethod.Get, update.DownloadUrl))
@@ -90,8 +123,8 @@ namespace NeuzStrap.Setup
             if (File.Exists(target)) File.Move(target, old);
             File.Move(tmp, target);
 
-            Logger.Info("Updater", $"Updated NeuzStrap to {update.Tag}, restarting");
-            Process.Start(new ProcessStartInfo(target, "-updated") { UseShellExecute = false });
+            Logger.Info("Updater", $"Updated NeuzStrap to {update.Tag}");
+            return target;
         }
     }
 }

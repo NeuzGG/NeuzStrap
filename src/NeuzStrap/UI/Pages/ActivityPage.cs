@@ -22,6 +22,8 @@ namespace NeuzStrap.UI.Pages
             Section("Discord Rich Presence", "Show the game you're playing on your Discord profile.");
             ToggleRow("Show my game on Discord", "Friends see \"Playing Roblox\" with the game's name and icon. Works out of the box; just keep the Discord app open on this PC.",
                 () => S.DiscordRichPresence, v => S.DiscordRichPresence = v, Glyph.Game);
+            ToggleRow("Add a \"Join server\" button", "Friends can click it to land in the exact server you're playing in. It's hidden automatically in private servers.",
+                () => S.DiscordShowJoinButton, v => S.DiscordShowJoinButton = v, Glyph.Link);
             ToggleRow("Add a \"View game\" button", "Lets friends open the game's page from your profile.",
                 () => S.DiscordShowGameButton, v => S.DiscordShowGameButton = v);
 

@@ -12,6 +12,8 @@ namespace NeuzStrap.Core
     public enum PriorityLevel { Normal, AboveNormal, High }
     public enum GpuPreference { WindowsDefault, HighPerformance, PowerSaving }
     public enum CursorStyle { RobloxDefault, Classic, Sakura, BigArrow, Dot, Crosshair, Custom, Rgb }
+    public enum OverlayCorner { TopLeft, TopCenter, TopRight, BottomLeft, BottomCenter, BottomRight }
+    public enum OverlaySize { Small, Medium, Large }
 
     /// <summary>
     /// Everything the user can change. Saved as Settings.json.
@@ -65,6 +67,16 @@ namespace NeuzStrap.Core
         public bool CalmBackgroundApps { get; set; } = false;
         public bool PowerBoost { get; set; } = false;
 
+        // ---------------------------------------------------------------- in-game extras
+        /// <summary>Turns on Roblox's own FPS / ping / memory display (the Shift+F5 panel).</summary>
+        public bool RobloxFpsCounter { get; set; } = false;
+        public bool Overlay { get; set; } = false;
+        public bool OverlayCps { get; set; } = true;
+        public bool OverlayKeys { get; set; } = true;
+        public bool OverlayRainbow { get; set; } = false;
+        public OverlayCorner OverlayPosition { get; set; } = OverlayCorner.TopLeft;
+        public OverlaySize OverlayScale { get; set; } = OverlaySize.Medium;
+
         // ---------------------------------------------------------------- integrations
         public bool ActivityTracking { get; set; } = true;
         public bool ServerLocationNotice { get; set; } = true;
@@ -72,6 +84,9 @@ namespace NeuzStrap.Core
         /// <summary>Optional override. Empty = NeuzStrap's built-in Discord application.</summary>
         public string DiscordApplicationId { get; set; } = "";
         public bool DiscordShowGameButton { get; set; } = true;
+        /// <summary>Adds a "Join server" button that drops friends into the exact server you're in.</summary>
+        public bool DiscordShowJoinButton { get; set; } = true;
+        public bool AutoUpdate { get; set; } = true;
 
         [JsonIgnore]
         public string EffectiveDiscordApplicationId =>

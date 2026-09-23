@@ -41,6 +41,9 @@ namespace NeuzStrap.Core
         public string PendingPowerSchemeRestore { get; set; } = "";
         public string PendingPowerOverlayRestore { get; set; } = "";
 
+        /// <summary>True while NeuzStrap is the one that turned Roblox's FPS panel on.</summary>
+        public bool RobloxFpsCounterApplied { get; set; }
+
         public DateTime LastAppUpdateCheckUtc { get; set; }
         public string SkippedAppVersion { get; set; } = "";
 

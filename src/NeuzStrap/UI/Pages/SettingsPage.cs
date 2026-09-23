@@ -33,6 +33,8 @@ namespace NeuzStrap.UI.Pages
 
             ToggleRow("Check for NeuzStrap updates", AppInfo.HasRepo ? "Shows a banner when a new version is out." : "Turns on once this build knows its GitHub page.",
                 () => S.CheckForAppUpdates, v => S.CheckForAppUpdates = v, Glyph.Download);
+            ToggleRow("Update automatically", "Installs new versions quietly in the background while Roblox starts. The new version is used from your next launch.",
+                () => S.AutoUpdate, v => S.AutoUpdate = v, Glyph.Refresh);
             var check = new NButton("Check now", ButtonKind.Secondary, Glyph.Refresh).FitToText();
             check.Enabled = AppInfo.HasRepo;
             check.Click += async (_, __) =>

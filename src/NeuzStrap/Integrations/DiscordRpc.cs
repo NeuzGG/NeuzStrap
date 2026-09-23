@@ -164,7 +164,7 @@ namespace NeuzStrap.Integrations
 
         // ------------------------------------------------------------------ activity builder
 
-        public static Dictionary<string, object> BuildActivity(GameSession session, GameDetails game, bool showButton)
+        public static Dictionary<string, object> BuildActivity(GameSession session, GameDetails game, bool showButton, bool showJoinButton = false)
         {
             string name = string.IsNullOrEmpty(game?.Name) ? "a Roblox game" : game.Name;
             var activity = new Dictionary<string, object>
@@ -181,11 +181,18 @@ namespace NeuzStrap.Integrations
             if (!string.IsNullOrEmpty(game?.IconUrl)) assets["large_image"] = game.IconUrl;
             activity["assets"] = assets;
 
-            if (showButton && session.PlaceId > 0)
-                activity["buttons"] = new List<object>
+            // Discord allows at most two buttons, and they have to be https links.
+            var buttons = new List<object>();
+            bool canJoin = !session.IsPrivateServer && !session.IsReservedServer && session.JobId.Length > 0;
+            if (showJoinButton && session.PlaceId > 0 && canJoin)
+                buttons.Add(new Dictionary<string, object>
                 {
-                    new Dictionary<string, object> { ["label"] = "View game", ["url"] = $"https://www.roblox.com/games/{session.PlaceId}" },
-                };
+                    ["label"] = "Join server",
+                    ["url"] = $"https://www.roblox.com/games/start?placeId={session.PlaceId}&gameInstanceId={session.JobId}",
+                });
+            if (showButton && session.PlaceId > 0)
+                buttons.Add(new Dictionary<string, object> { ["label"] = "View game", ["url"] = $"https://www.roblox.com/games/{session.PlaceId}" });
+            if (buttons.Count > 0) activity["buttons"] = buttons;
             return activity;
         }
 

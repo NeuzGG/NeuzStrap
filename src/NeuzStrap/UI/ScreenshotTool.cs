@@ -15,7 +15,7 @@ namespace NeuzStrap.UI
     /// </summary>
     public static class ScreenshotTool
     {
-        static readonly string[] Pages = { "home", "performance", "booster", "fastflags", "mods", "activity", "tools", "settings", "about" };
+        static readonly string[] Pages = { "home", "performance", "booster", "fastflags", "mods", "overlay", "activity", "tools", "settings", "about" };
 
         /// <summary>Demo screenshots always look the same (e.g. "Play" even if Roblox happens to be open).</summary>
         internal static bool DemoMode { get; private set; }
@@ -109,6 +109,9 @@ namespace NeuzStrap.UI
             s.CustomFastFlags["FIntDebugForceMSAASamples"] = "1";
             s.CustomFastFlags["FFlagSomeOldTweak"] = "True";
             s.CursorStyle = CursorStyle.Sakura;
+            s.Overlay = true;
+            s.OverlayRainbow = true;
+            s.RobloxFpsCounter = true;
 
             var st = State.Current;
             st.RobloxVersionName = "0.739.0.7390687";

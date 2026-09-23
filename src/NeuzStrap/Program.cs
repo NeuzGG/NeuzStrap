@@ -35,6 +35,7 @@ namespace NeuzStrap
                 Theme.Init(Settings.Current.Accent);
                 AppInstaller.CleanupOldExe();
                 if (cmd.JustUpdated) AppInstaller.RefreshUninstallEntry();
+                else AppInstaller.EnsureUninstallEntryCurrent();
 
                 return Run(cmd);
             }

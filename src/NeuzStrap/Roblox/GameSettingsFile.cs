@@ -20,8 +20,16 @@ namespace NeuzStrap.Roblox
 
         static bool WantsFps(Settings s) => Array.IndexOf(FramerateOptions, s.FramerateCap) >= 0;
 
+        /// <summary>
+        /// Roblox's own FPS panel: true = turn it on, false = turn it off again (only when NeuzStrap
+        /// turned it on before), null = leave whatever the player set with Shift+F5.
+        /// </summary>
+        static bool? PerformanceStats(Settings s) =>
+            s.RobloxFpsCounter ? true : State.Current.RobloxFpsCounterApplied ? (bool?)false : null;
+
         /// <summary>True when the current settings change something in Roblox's settings file.</summary>
-        public static bool HasChanges(Settings s) => s.GraphicsQualityLock > 0 || s.OptimizationMode >= 0 || WantsFps(s);
+        public static bool HasChanges(Settings s) =>
+            s.GraphicsQualityLock > 0 || s.OptimizationMode >= 0 || WantsFps(s) || PerformanceStats(s) != null;
 
         public static void Apply(Settings s)
         {
@@ -38,10 +46,17 @@ namespace NeuzStrap.Roblox
                 Logger.Info("GameSettings", "Roblox is already running, so its in-game settings file was left alone");
                 return;
             }
-            ApplyTo(path, s);
+            bool? stats = PerformanceStats(s);
+            ApplyTo(path, s, stats);
+
+            if (stats.HasValue && State.Current.RobloxFpsCounterApplied != stats.Value)
+            {
+                State.Current.RobloxFpsCounterApplied = stats.Value;
+                State.Save();
+            }
         }
 
-        internal static void ApplyTo(string path, Settings s)
+        internal static void ApplyTo(string path, Settings s, bool? performanceStats = null)
         {
             bool wantsQuality = s.GraphicsQualityLock > 0;
             bool wantsMode = s.OptimizationMode >= 0;
@@ -71,6 +86,7 @@ namespace NeuzStrap.Roblox
                 }
                 if (wantsMode) Set(doc, props, "token", "GraphicsOptimizationMode", Utils.Clamp(s.OptimizationMode, 0, 2).ToString());
                 if (wantsFps) Set(doc, props, "int", "FramerateCap", s.FramerateCap.ToString());
+                if (performanceStats.HasValue) Set(doc, props, "bool", "PerformanceStatsVisible", performanceStats.Value ? "true" : "false");
 
                 var ws = new XmlWriterSettings { Encoding = new UTF8Encoding(false), OmitXmlDeclaration = doc.FirstChild is not XmlDeclaration };
                 string tmp = path + ".tmp";

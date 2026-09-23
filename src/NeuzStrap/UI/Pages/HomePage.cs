@@ -54,7 +54,50 @@ namespace NeuzStrap.UI.Pages
             State.Reload();
             _hero.RefreshInfo();
             _ = LoadSystemAsync();
+            RefreshCrashRow();
             RebuildRecent();
+        }
+
+        /// <summary>Shown when Roblox crashed recently, so you can get back in from here too.</summary>
+        void RefreshCrashRow()
+        {
+            foreach (var old in Controls.OfType<Control>().Where(c => (c.Tag as string) == "crash").ToList())
+            {
+                Controls.Remove(old);
+                old.Dispose();
+            }
+
+            var crash = State.Current.LastCrash;
+            if (crash == null || !crash.IsRecent || !S.RejoinAfterCrash) return;
+
+            var buttons = new ButtonBar();
+            buttons.AddButton(new NButton("Dismiss", ButtonKind.Ghost).FitToText(), (_, __) =>
+            {
+                State.Reload();
+                State.Current.LastCrash = new CrashInfo();
+                State.Save();
+                RefreshCrashRow();
+                PerformLayout();
+            });
+            buttons.AddButton(new NButton("Rejoin", ButtonKind.Primary, Glyph.Play).FitToText(), (_, __) =>
+            {
+                State.Reload();
+                string link = State.Current.LastCrash.DeepLink;
+                State.Current.LastCrash = new CrashInfo();
+                State.Save();
+                Main.PlayAndClose(link);
+            });
+            buttons.FitToButtons();
+
+            string name = string.IsNullOrEmpty(crash.Name) ? "a game" : crash.Name;
+            var row = new SettingRow("Roblox closed unexpectedly",
+                $"You were playing {name} {Utils.TimeAgo(crash.WhenUtc)}. Rejoin the same server?", buttons, Glyph.Warning)
+            {
+                Tag = "crash",
+                GlyphColor = Theme.Warning,
+            };
+            Controls.Add(row);
+            Controls.SetChildIndex(row, 1); // right under the Play card
         }
 
         public void ProfileChanged()

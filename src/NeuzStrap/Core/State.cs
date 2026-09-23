@@ -19,6 +19,23 @@ namespace NeuzStrap.Core
         public int TimesPlayed { get; set; }
     }
 
+    /// <summary>The game you were in when Roblox closed unexpectedly, so it can be offered again.</summary>
+    public class CrashInfo
+    {
+        public long PlaceId { get; set; }
+        public string JobId { get; set; } = "";
+        public string Name { get; set; } = "";
+        public DateTime WhenUtc { get; set; }
+
+        [JsonIgnore]
+        public bool IsRecent => PlaceId > 0 && (DateTime.UtcNow - WhenUtc).TotalHours < 6;
+
+        [JsonIgnore]
+        public string DeepLink => JobId.Length > 0
+            ? $"roblox://experiences/start?placeId={PlaceId}&gameInstanceId={JobId}"
+            : $"roblox://experiences/start?placeId={PlaceId}";
+    }
+
     /// <summary>
     /// Things NeuzStrap remembers that aren't user preferences (installed Roblox version,
     /// recently played games, what to undo after a crash). Saved as State.json.
@@ -43,6 +60,9 @@ namespace NeuzStrap.Core
 
         /// <summary>True while NeuzStrap is the one that turned Roblox's FPS panel on.</summary>
         public bool RobloxFpsCounterApplied { get; set; }
+
+        public CrashInfo LastCrash { get; set; } = new CrashInfo();
+        public DateTime LastAutoCleanUtc { get; set; }
 
         public DateTime LastAppUpdateCheckUtc { get; set; }
         public string SkippedAppVersion { get; set; } = "";

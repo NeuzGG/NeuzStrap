@@ -89,12 +89,8 @@ namespace NeuzStrap.Integrations
                 }
             }
 
-            if (Current != null)
-            {
-                var left = Current;
-                Current = null;
-                GameLeft?.Invoke(left);
-            }
+            // Current is deliberately left as-is: if Roblox disappeared while we were in a game, the caller
+            // uses it to offer a rejoin. A normal "left the game" is raised from the log instead.
         }
 
         static async Task<string> FindLogFileAsync(Func<bool> robloxAlive, DateTime launchedUtc, CancellationToken ct)

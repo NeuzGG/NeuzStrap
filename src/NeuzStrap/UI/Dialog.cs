@@ -20,16 +20,25 @@ namespace NeuzStrap.UI
         public static void Error(IWin32Window owner, string title, string message) =>
             Show(owner, title, message, DialogIcon.Error, ("OK", DialogResult.OK, ButtonKind.Primary));
 
-        public static bool Confirm(IWin32Window owner, string title, string message, string yes = "Yes", string no = "Cancel", bool danger = false) =>
-            Show(owner, title, message, danger ? DialogIcon.Warning : DialogIcon.Question,
+        public static bool Confirm(IWin32Window owner, string title, string message, string yes = "Yes", string no = "Cancel",
+                                   bool danger = false, bool topMost = false) =>
+            Show(owner, title, message, danger ? DialogIcon.Warning : DialogIcon.Question, topMost,
                  (no, DialogResult.Cancel, ButtonKind.Secondary),
                  (yes, DialogResult.OK, danger ? ButtonKind.Danger : ButtonKind.Primary)) == DialogResult.OK;
 
         public static DialogResult Show(IWin32Window owner, string title, string message, DialogIcon icon,
+                                        params (string Text, DialogResult Result, ButtonKind Kind)[] buttons) =>
+            Show(owner, title, message, icon, false, buttons);
+
+        public static DialogResult Show(IWin32Window owner, string title, string message, DialogIcon icon, bool topMost,
                                         params (string Text, DialogResult Result, ButtonKind Kind)[] buttons)
         {
             using (var f = new MessageForm(title, message, icon, buttons))
+            {
+                // used when the game just vanished and there's no window left to sit on top of
+                if (topMost) { f.TopMost = true; f.ShowInTaskbar = true; f.StartPosition = FormStartPosition.CenterScreen; }
                 return owner != null ? f.ShowDialog(owner) : f.ShowDialog();
+            }
         }
 
         /// <summary>Asks for text. Returns null if cancelled.</summary>

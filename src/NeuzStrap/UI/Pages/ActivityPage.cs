@@ -18,6 +18,8 @@ namespace NeuzStrap.UI.Pages
                 () => S.ActivityTracking, v => S.ActivityTracking = v, Glyph.History);
             ToggleRow("Server location", "Shows a small notice with where your server is and how far away it is. Far server = more lag, so rejoin!",
                 () => S.ServerLocationNotice, v => S.ServerLocationNotice = v, Glyph.Globe);
+            ToggleRow("Rejoin after a crash", "If Roblox closes unexpectedly while you're in a game, NeuzStrap offers to put you back in the same server.",
+                () => S.RejoinAfterCrash, v => S.RejoinAfterCrash = v, Glyph.Refresh);
 
             Section("Discord Rich Presence", "Show the game you're playing on your Discord profile.");
             ToggleRow("Show my game on Discord", "Friends see \"Playing Roblox\" with the game's name and icon. Works out of the box; just keep the Discord app open on this PC.",

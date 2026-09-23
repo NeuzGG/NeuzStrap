@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.3.0 (2026-09-23)
+
+- New: **rejoin after a crash**. If Roblox closes unexpectedly while you're in a game, NeuzStrap offers to put you
+  straight back into the same server. The offer also waits on the Home page for a few hours in case you dismissed it.
+  A normal quit never asks.
+- New: **automatic clean-up**. Every month (or weekly / every 3 months, your choice) NeuzStrap clears Roblox's logs,
+  temp files, old versions, download caches and - if you want - the big asset cache. It runs *after* you finish
+  playing, so it never slows a launch down, and it never touches the official launcher's own copy of Roblox.
+
 ## v1.2.0 (2026-09-23)
 
 - New **On-screen** page.

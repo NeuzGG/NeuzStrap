@@ -31,6 +31,7 @@ namespace NeuzStrap.Launch
         GameBooster.BackgroundCalmer _calmer;
         DiscordRpc _discord;
         GameSession _current;
+        string _currentName;
         OverlayWindow _overlay;
         bool _powerBoosted;
         bool _disposed;
@@ -86,9 +87,10 @@ namespace NeuzStrap.Launch
             }, TaskScheduler.Default);
 
             bool wantsActivity = _s.ActivityTracking || _s.DiscordRichPresence || _s.ServerLocationNotice;
+            ActivityWatcher watcher = null;
             if (wantsActivity)
             {
-                var watcher = new ActivityWatcher();
+                watcher = new ActivityWatcher();
                 watcher.GameJoined += g => _ui.Post(_ => OnGameJoined(g), null);
                 watcher.GameLeft += g => _ui.Post(_ => OnGameLeft(g), null);
                 // a background feature must never interrupt the game with an error
@@ -103,8 +105,58 @@ namespace NeuzStrap.Launch
                 catch (OperationCanceledException) { break; }
             }
 
-            Logger.Info("PlaySession", "Roblox closed, cleaning up");
+            // Still "in a game" when the process disappeared, and it didn't exit cleanly -> it crashed.
+            var diedIn = watcher?.Current;
+            int exitCode = ExitCodeOf(_roblox);
+            Logger.Info("PlaySession", $"Roblox closed (exit code {exitCode}{(diedIn != null ? ", was in a game" : "")}), cleaning up");
             Cleanup();
+
+            if (diedIn != null && exitCode != 0 && _s.RejoinAfterCrash && !_cts.IsCancellationRequested)
+                OfferRejoin(diedIn);
+
+            await RunScheduledCleanupAsync();
+        }
+
+        static int ExitCodeOf(Process p)
+        {
+            try { return p.HasExited ? p.ExitCode : 0; } catch { return 0; }
+        }
+
+        /// <summary>Roblox died mid-game: offer to drop straight back into the same server.</summary>
+        void OfferRejoin(GameSession session)
+        {
+            string name = string.IsNullOrEmpty(_currentName) ? "your game" : _currentName;
+            State.Reload();
+            State.Current.LastCrash = new CrashInfo { PlaceId = session.PlaceId, JobId = session.JobId, Name = _currentName ?? "", WhenUtc = DateTime.UtcNow };
+            State.Save();
+
+            Logger.Info("PlaySession", $"Offering a rejoin into place {session.PlaceId}");
+            bool rejoin = Dialog.Confirm(null, "Roblox closed unexpectedly",
+                $"You were playing {name}. Want to jump back into the same server?",
+                "Rejoin", "Not now", danger: false, topMost: true);
+            if (!rejoin) return;
+
+            if (Launcher.PlayRoblox(session.DeepLink))
+            {
+                State.Current.LastCrash = new CrashInfo();
+                State.Save();
+            }
+        }
+
+        /// <summary>The scheduled tidy-up, done after you finish playing so it never slows a launch down.</summary>
+        async Task RunScheduledCleanupAsync()
+        {
+            if (!Cleaner.IsDue(_s, State.Current)) return;
+            try
+            {
+                long freed = await Task.Run(() => Cleaner.RunAuto(_s)).ConfigureAwait(true);
+                if (freed > 50L * 1024 * 1024 && !_disposed)
+                {
+                    Toast.Show("Tidied up", $"Freed {Utils.FormatBytes(freed)} of Roblox leftovers. Games will re-download what they need.", null, 6);
+                    await Task.Delay(4500).ConfigureAwait(true); // let the notice be seen before NeuzStrap exits
+                }
+            }
+            catch (Exception ex) { Logger.Error("PlaySession", ex, "Scheduled clean-up failed"); }
         }
 
         static bool HasExited(Process p)
@@ -135,6 +187,7 @@ namespace NeuzStrap.Launch
 
             if (details != null && details.Name.Length > 0)
             {
+                _currentName = details.Name;
                 _gameItem.Text = Trim(details.Name, 60);
                 _tray.Text = Trim("NeuzStrap - " + details.Name, 63);
             }
@@ -194,6 +247,7 @@ namespace NeuzStrap.Launch
         {
             if (_disposed || _current != g) return;
             _current = null;
+            _currentName = null;
             _gameItem.Text = "In the Roblox app";
             _serverItem.Text = "Not in a server";
             _copyLinkItem.Enabled = false;

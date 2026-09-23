@@ -13,6 +13,8 @@ namespace NeuzStrap.Boost
         public string Description { get; set; }
         public bool CheckedByDefault { get; set; } = true;
         public bool NeedsRobloxClosed { get; set; }
+        /// <summary>May the automatic clean-up touch this? (Never the official launcher's own copy of Roblox.)</summary>
+        public bool AutoCleanable { get; set; } = true;
         public Func<long> Measure { get; set; }
         public Func<long> Clean { get; set; }
     }
@@ -20,7 +22,36 @@ namespace NeuzStrap.Boost
     /// <summary>Frees disk space - potato laptops are usually also nearly-full-SSD laptops.</summary>
     public static class Cleaner
     {
+        public const string AssetCacheName = "Roblox asset cache";
+        public const string OfficialCopiesName = "Official Roblox player copies";
+
         static string RobloxTemp => Path.Combine(Paths.Temp, "Roblox");
+
+        /// <summary>Is the scheduled clean-up due? (Checked after you finish playing.)</summary>
+        public static bool IsDue(Settings s, State state) =>
+            s.AutoClean && (DateTime.UtcNow - state.LastAutoCleanUtc).TotalDays >= Math.Max(1, s.AutoCleanDays);
+
+        /// <summary>
+        /// The scheduled clean-up: logs, temp files, old versions and download caches, plus the big asset
+        /// cache when that's turned on and Roblox is closed. Returns how many bytes were freed.
+        /// </summary>
+        public static long RunAuto(Settings s)
+        {
+            long freed = 0;
+            foreach (var item in GetItems())
+            {
+                if (!item.AutoCleanable) continue;
+                if (item.Name == AssetCacheName && !s.AutoCleanAssetCache) continue;
+                if (item.NeedsRobloxClosed && RobloxProcess.IsPlayerRunning()) continue;
+                try { freed += item.Clean(); }
+                catch (Exception ex) { Logger.Warn("Cleaner", $"Auto clean-up of {item.Name} failed: {ex.Message}"); }
+            }
+
+            State.Current.LastAutoCleanUtc = DateTime.UtcNow;
+            State.Save();
+            Logger.Info("Cleaner", $"Automatic clean-up freed {Utils.FormatBytes(freed)}");
+            return freed;
+        }
 
         public static List<CleanItem> GetItems()
         {
@@ -63,7 +94,8 @@ namespace NeuzStrap.Boost
                 },
                 new CleanItem
                 {
-                    Name = "Official Roblox player copies",
+                    Name = OfficialCopiesName,
+                    AutoCleanable = false, // deleting someone's other Roblox install is never automatic
                     Description = "Roblox's own launcher keeps its own copy of the game, which NeuzStrap doesn't need. Roblox Studio is never touched.",
                     CheckedByDefault = false,
                     NeedsRobloxClosed = true,
@@ -72,7 +104,7 @@ namespace NeuzStrap.Boost
                 },
                 new CleanItem
                 {
-                    Name = "Roblox asset cache",
+                    Name = AssetCacheName,
                     Description = "Downloaded game assets. Frees the most space, but games load slower the first time after.",
                     CheckedByDefault = false,
                     NeedsRobloxClosed = true,

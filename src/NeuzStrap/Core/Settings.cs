@@ -30,6 +30,12 @@ namespace NeuzStrap.Core
         // ---------------------------------------------------------------- launcher
         public string Channel { get; set; } = "LIVE";
         public bool KeepDownloadCache { get; set; } = false;
+        /// <summary>Tidy up Roblox's leftovers by itself after you finish playing.</summary>
+        public bool AutoClean { get; set; } = true;
+        /// <summary>How often the automatic clean-up runs, in days.</summary>
+        public int AutoCleanDays { get; set; } = 30;
+        /// <summary>Include the big downloaded-assets cache (games re-download what they need).</summary>
+        public bool AutoCleanAssetCache { get; set; } = true;
         public bool CheckForAppUpdates { get; set; } = true;
         public bool FirstRunDone { get; set; } = false;
 
@@ -89,6 +95,8 @@ namespace NeuzStrap.Core
 
         // ---------------------------------------------------------------- integrations
         public bool ActivityTracking { get; set; } = true;
+        /// <summary>Offer to jump back into the same server when Roblox closes unexpectedly.</summary>
+        public bool RejoinAfterCrash { get; set; } = true;
         public bool ServerLocationNotice { get; set; } = true;
         public bool DiscordRichPresence { get; set; } = true;
         /// <summary>Optional override. Empty = NeuzStrap's built-in Discord application.</summary>

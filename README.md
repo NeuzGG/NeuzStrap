@@ -67,7 +67,8 @@ playable on a weak PC?**
 
 ### 🧹 Tools
 - **Cleaner** for logs, temp files, old versions, download caches, leftover official-launcher copies and the asset cache
-  (it can be gigabytes on a small SSD).
+  (it can be gigabytes on a small SSD), plus a **scheduled clean-up** that runs by itself after you finish playing.
+- **Rejoin after a crash**: if Roblox dies mid-game, NeuzStrap offers to drop you back into the same server.
 - **Repair Roblox**, update on demand, and a check that the website's Play button still opens NeuzStrap.
 - **Mods**: drop files into the Mods folder to replace sounds and textures, use a **custom font**, or pick a
   **custom cursor** (built-in styles, an RGB rainbow version of Roblox's own cursors, or your own image).

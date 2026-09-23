@@ -17,6 +17,7 @@ namespace NeuzStrap.UI.Pages
         readonly Paragraph _cleanResult;
         readonly SettingRow _linksRow;
         readonly NButton _linksFix;
+        readonly SettingRow _autoCleanRow;
         long[] _sizes = new long[0];
         bool _busy;
 
@@ -38,6 +39,14 @@ namespace NeuzStrap.UI.Pages
             _cleanButton = bar.AddButton(new NButton("Clean selected", ButtonKind.Primary, Glyph.Clean).FitToText(), async (_, __) => await CleanAsync());
             bar.AddButton(new NButton("Rescan", ButtonKind.Secondary, Glyph.Refresh).FitToText(), async (_, __) => await MeasureAsync());
             _cleanResult = Add(new Paragraph("", Theme.Body, Theme.Success));
+
+            Section("Automatic clean-up", "Runs by itself after you finish playing, so a small drive never fills up.");
+            _autoCleanRow = ToggleRow("Clean up on a schedule", "", () => S.AutoClean, v => { S.AutoClean = v; RefreshAutoClean(); }, Glyph.Clean);
+            DropdownRow("How often", "Only runs when it's due, right after Roblox closes.",
+                new Dropdown(200).Add("Every week", 7).Add("Every 2 weeks", 14).Add("Every month", 30).Add("Every 3 months", 90),
+                () => S.AutoCleanDays, v => { S.AutoCleanDays = (int)v; RefreshAutoClean(); });
+            ToggleRow("Include the asset cache", "The big one (often gigabytes). Games re-download what they need, so the first load after a clean-up is slower.",
+                () => S.AutoCleanAssetCache, v => S.AutoCleanAssetCache = v);
 
             Section("Roblox");
             var update = new NButton("Update now", ButtonKind.Secondary, Glyph.Download).FitToText();
@@ -99,7 +108,20 @@ namespace NeuzStrap.UI.Pages
         public override void OnNavigatedTo()
         {
             RefreshLinks();
+            RefreshAutoClean();
             _ = MeasureAsync();
+        }
+
+        void RefreshAutoClean()
+        {
+            var last = State.Current.LastAutoCleanUtc;
+            string when = last == default(DateTime)
+                ? "It hasn't run yet."
+                : $"Last run {Utils.TimeAgo(last)}.";
+            _autoCleanRow.Description = S.AutoClean
+                ? $"Clears logs, temp files, old versions and download caches every {S.AutoCleanDays} days. {when}"
+                : "Off. Use the Cleaner above whenever you want instead.";
+            _autoCleanRow.PerformLayout();
         }
 
         void RefreshLinks()

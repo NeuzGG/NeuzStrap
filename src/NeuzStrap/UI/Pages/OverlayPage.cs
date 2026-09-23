@@ -9,9 +9,10 @@ namespace NeuzStrap.UI.Pages
     public sealed class OverlayPage : Page
     {
         readonly OverlayPreview _preview;
+        readonly KeyChips _chips;
 
         public override string Title => "On-screen";
-        public override string Subtitle => "FPS, clicks per second and your movement keys, on top of the game.";
+        public override string Subtitle => "FPS, clicks per second and the keys you pick, on top of the game.";
 
         public OverlayPage(MainForm main) : base(main)
         {
@@ -26,8 +27,16 @@ namespace NeuzStrap.UI.Pages
                       () => S.Overlay, v => { S.Overlay = v; _preview.Invalidate(); }, Glyph.Monitor);
             ToggleRow("Clicks per second (CPS)", "Counts your left clicks each second, plus right clicks when you use them.",
                       () => S.OverlayCps, v => { S.OverlayCps = v; _preview.Invalidate(); }, Glyph.Mouse);
-            ToggleRow("Movement keys", "Lights up W, A, S, D, Space and Shift as you press them.",
+            ToggleRow("Keys per second (KPS)", "How many times you press the keys below each second.",
+                      () => S.OverlayKps, v => { S.OverlayKps = v; _preview.Invalidate(); }, Glyph.Keyboard);
+            ToggleRow("Key display", "Lights up each key below as you hold it.",
                       () => S.OverlayKeys, v => { S.OverlayKeys = v; _preview.Invalidate(); }, Glyph.Keyboard);
+
+            Note("Your keys (click one to remove it):");
+            _chips = Add(new KeyChips());
+            _chips.Changed += () => _preview.Invalidate();
+            var reset = Add(new ButtonBar());
+            reset.AddButton(new NButton("Reset to W A S D", ButtonKind.Ghost, Glyph.Refresh).FitToText(), (_, __) => _chips.ResetToDefault());
             ToggleRow("Rainbow colors", "Cycles the colors while you play. Off uses your accent color.",
                       () => S.OverlayRainbow, v => { S.OverlayRainbow = v; _preview.Restart(); }, Glyph.Heart);
 
@@ -40,7 +49,7 @@ namespace NeuzStrap.UI.Pages
                 () => S.OverlayScale, v => { S.OverlayScale = (OverlaySize)v; _preview.Invalidate(); });
 
             Section("Good to know");
-            Note("\u2022 The overlay only checks whether W, A, S, D, Space, Shift and the mouse buttons are held down right now. " +
+            Note("\u2022 The overlay only checks whether the keys you picked (and the mouse buttons) are held down right now. " +
                  "It doesn't install a keyboard hook and never sees what you type.\n" +
                  "\u2022 It only shows while the Roblox window is in front, and it never blocks your clicks.\n" +
                  "\u2022 It redraws about 30 times a second, so leave it off if you want every last frame.");
@@ -96,13 +105,13 @@ namespace NeuzStrap.UI.Pages
                 Draw.StrokeRound(g, screen, Theme.S(10), Theme.Border);
 
                 var s = Settings.Current;
-                if (!s.Overlay || (!s.OverlayCps && !s.OverlayKeys))
+                if (!s.Overlay || (!s.OverlayCps && !s.OverlayKps && !s.OverlayKeys))
                 {
                     Draw.CenterText(g, "Overlay is off", Theme.Body, screen, Color.FromArgb(200, 255, 255, 255));
                     return;
                 }
 
-                using (var panel = OverlayRenderer.Render(s, OverlayState.Sample, _hue, Theme.Scale))
+                using (var panel = OverlayRenderer.Render(s, OverlayState.SampleFor(s), _hue, Theme.Scale))
                 {
                     int margin = Theme.S(12);
                     int x;

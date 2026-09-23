@@ -111,6 +111,7 @@ namespace NeuzStrap.UI
             s.CursorStyle = CursorStyle.Sakura;
             s.Overlay = true;
             s.OverlayRainbow = true;
+            s.OverlayKps = true;
             s.RobloxFpsCounter = true;
 
             var st = State.Current;

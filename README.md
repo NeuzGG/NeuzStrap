@@ -61,8 +61,8 @@ playable on a weak PC?**
 - **Copy an invite link** to your exact server from the tray icon.
 - **Discord Rich Presence** showing your game and its icon, with no setup needed, plus a **Join server** button
   friends can use to land in your exact server.
-- **On-screen extras**: Roblox's own FPS counter, plus a click-through overlay with a **CPS counter** and a
-  **keyboard display** (static or rainbow, six positions, three sizes).
+- **On-screen extras**: Roblox's own FPS counter, plus a click-through overlay with **CPS**, **KPS** and a
+  **key display** for keys you choose (static or rainbow, six positions, three sizes).
 
 ### 🧹 Tools
 - **Cleaner** for logs, temp files, old versions, download caches, leftover official-launcher copies and the asset cache

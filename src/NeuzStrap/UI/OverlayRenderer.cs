@@ -11,15 +11,26 @@ namespace NeuzStrap.UI
     {
         public int LeftCps;
         public int RightCps;
+        public int Kps;
         public bool RightMouseDown;
         public bool[] Keys;
+        /// <summary>Text on each key box, in the order the user arranged them.</summary>
+        public string[] Labels;
 
-        public static OverlayState Sample => new OverlayState
+        public static OverlayState Sample => SampleFor(new Settings());
+
+        /// <summary>A "someone is playing" snapshot using the keys the user picked (for the settings preview).</summary>
+        public static OverlayState SampleFor(Settings s)
         {
-            LeftCps = 7,
-            RightCps = 0,
-            Keys = new[] { true, false, false, true, false, true }, // W + D + Shift
-        };
+            var names = Integrations.KeyNames.Clean(s.OverlayKeyList);
+            var labels = new string[names.Count];
+            var keys = new bool[names.Count];
+            for (int i = 0; i < names.Count; i++) labels[i] = Integrations.KeyNames.Label(names[i]);
+            if (keys.Length > 0) keys[0] = true;                       // holding forward...
+            if (keys.Length > 3) keys[3] = true;                       // ...and strafing...
+            if (keys.Length > 5) keys[5] = true;                       // ...while sprinting
+            return new OverlayState { LeftCps = 7, Kps = 12, Labels = labels, Keys = keys };
+        }
     }
 
     /// <summary>Draws the overlay panel (shared by the in-game window and the settings preview).</summary>
@@ -36,22 +47,26 @@ namespace NeuzStrap.UI
             int S(int px) => Math.Max(1, (int)Math.Round(px * f));
 
             int pad = S(10), gap = S(6), keyH = S(26), radius = S(8);
-            var keys = InputMonitor.Watched;
-            bool showKeys = s.OverlayKeys;
+            var labels = state.Labels ?? Array.ConvertAll(KeyNames.Default, KeyNames.Label);
+            bool showKeys = s.OverlayKeys && labels.Length > 0;
             bool showCps = s.OverlayCps;
+            bool showKps = s.OverlayKps;
 
             using (var cpsFont = new Font("Segoe UI", S(14), FontStyle.Bold, GraphicsUnit.Pixel))
             using (var keyFont = new Font("Segoe UI", S(11), FontStyle.Bold, GraphicsUnit.Pixel))
             {
-                string cpsText = showCps ? $"{state.LeftCps} CPS" : null;
+                string cpsText = showCps && showKps ? $"{state.LeftCps} CPS  \u00B7  {state.Kps} KPS"
+                               : showCps ? $"{state.LeftCps} CPS"
+                               : showKps ? $"{state.Kps} KPS"
+                               : null;
                 string rightText = showCps && (state.RightCps > 0 || state.RightMouseDown) ? $"R {state.RightCps}" : null;
 
-                var keyWidths = new int[keys.Length];
+                var keyWidths = new int[labels.Length];
                 int keysWidth = 0;
                 if (showKeys)
-                    for (int i = 0; i < keys.Length; i++)
+                    for (int i = 0; i < labels.Length; i++)
                     {
-                        keyWidths[i] = Math.Max(keyH, Draw.Measure(keys[i].Label, keyFont).Width + S(12));
+                        keyWidths[i] = Math.Max(keyH, Draw.Measure(labels[i], keyFont).Width + S(12));
                         keysWidth += keyWidths[i] + (i > 0 ? gap : 0);
                     }
 
@@ -87,7 +102,7 @@ namespace NeuzStrap.UI
                     if (showKeys)
                     {
                         int x = pad;
-                        for (int i = 0; i < keys.Length; i++)
+                        for (int i = 0; i < labels.Length; i++)
                         {
                             var box = new RectangleF(x, y, keyWidths[i], keyH);
                             bool down = state.Keys != null && i < state.Keys.Length && state.Keys[i];
@@ -95,7 +110,7 @@ namespace NeuzStrap.UI
                             Draw.StrokeRound(g, box, S(5), Color.FromArgb(down ? 220 : 90, 255, 255, 255));
                             using (var b = new SolidBrush(down ? Color.FromArgb(20, 16, 24) : Color.FromArgb(225, 255, 255, 255)))
                             using (var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
-                                g.DrawString(keys[i].Label, keyFont, b, box, sf);
+                                g.DrawString(labels[i], keyFont, b, box, sf);
                             x += keyWidths[i] + gap;
                         }
                     }

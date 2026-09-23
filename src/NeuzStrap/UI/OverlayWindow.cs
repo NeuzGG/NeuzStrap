@@ -19,7 +19,7 @@ namespace NeuzStrap.UI
     {
         readonly Process _roblox;
         readonly Settings _s = Settings.Current;
-        readonly InputMonitor _input = new InputMonitor();
+        readonly InputMonitor _input;
         readonly Timer _timer = new Timer { Interval = 33 };
         float _hue;
         string _lastState = "";
@@ -27,6 +27,7 @@ namespace NeuzStrap.UI
         public OverlayWindow(Process roblox)
         {
             _roblox = roblox;
+            _input = new InputMonitor(_s.OverlayKeyList);
             FormBorderStyle = FormBorderStyle.None;
             ShowInTaskbar = false;
             TopMost = true;
@@ -71,7 +72,7 @@ namespace NeuzStrap.UI
             _input.Poll();
             if (_s.OverlayRainbow) _hue = (_hue + 1.6f) % 360f;
 
-            string state = $"{_input.LeftCps}/{_input.RightCps}/{KeyMask()}/{(_s.OverlayRainbow ? (int)_hue : 0)}/{r.Left},{r.Top},{r.Width},{r.Height}";
+            string state = $"{_input.LeftCps}/{_input.RightCps}/{_input.Kps}/{KeyMask()}/{(_s.OverlayRainbow ? (int)_hue : 0)}/{r.Left},{r.Top},{r.Width},{r.Height}";
             if (state == _lastState && Visible) return; // nothing changed, don't repaint
             _lastState = state;
 
@@ -88,7 +89,7 @@ namespace NeuzStrap.UI
         {
             int mask = _input.LeftMouseDown ? 1 : 0;
             if (_input.RightMouseDown) mask |= 2;
-            for (int i = 0; i < InputMonitor.Watched.Length; i++)
+            for (int i = 0; i < _input.KeyCount && i < 28; i++)
                 if (_input.IsDown(i)) mask |= 4 << i;
             return mask;
         }
@@ -117,14 +118,16 @@ namespace NeuzStrap.UI
 
         Bitmap Render()
         {
-            var keys = new bool[InputMonitor.Watched.Length];
+            var keys = new bool[_input.KeyCount];
             for (int i = 0; i < keys.Length; i++) keys[i] = _input.IsDown(i);
             var state = new OverlayState
             {
                 LeftCps = _input.LeftCps,
                 RightCps = _input.RightCps,
+                Kps = _input.Kps,
                 RightMouseDown = _input.RightMouseDown,
                 Keys = keys,
+                Labels = _input.Labels,
             };
             return OverlayRenderer.Render(_s, state, _hue, Theme.Scale);
         }

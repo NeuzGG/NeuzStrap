@@ -72,7 +72,14 @@ namespace NeuzStrap.Core
         public bool RobloxFpsCounter { get; set; } = false;
         public bool Overlay { get; set; } = false;
         public bool OverlayCps { get; set; } = true;
+        /// <summary>Key presses per second (of the keys below).</summary>
+        public bool OverlayKps { get; set; } = false;
         public bool OverlayKeys { get; set; } = true;
+        /// <summary>Which keys the overlay shows, e.g. W, A, S, D, SPACE, SHIFT, MOUSE1, F.</summary>
+        public List<string> OverlayKeyList { get; set; } = new List<string>(Integrations.KeyNames.Default);
+
+        [JsonIgnore]
+        public bool OverlayHasContent => Overlay && (OverlayCps || OverlayKps || OverlayKeys);
         public bool OverlayRainbow { get; set; } = false;
         public OverlayCorner OverlayPosition { get; set; } = OverlayCorner.TopLeft;
         public OverlaySize OverlayScale { get; set; } = OverlaySize.Medium;

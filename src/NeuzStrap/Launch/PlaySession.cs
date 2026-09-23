@@ -37,7 +37,7 @@ namespace NeuzStrap.Launch
 
         public static bool IsNeeded(Settings s) =>
             s.ActivityTracking || s.DiscordRichPresence || s.ServerLocationNotice || s.CalmBackgroundApps || s.PowerBoost
-            || (s.Overlay && (s.OverlayCps || s.OverlayKeys));
+            || s.OverlayHasContent;
 
         public PlaySession(Process roblox, DateTime launchedUtc)
         {
@@ -58,7 +58,7 @@ namespace NeuzStrap.Launch
             }
             if (_s.PowerBoost) _powerBoosted = PowerPlan.Boost();
 
-            if (_s.Overlay && (_s.OverlayCps || _s.OverlayKeys))
+            if (_s.OverlayHasContent)
             {
                 try
                 {

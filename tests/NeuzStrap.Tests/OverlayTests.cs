@@ -34,8 +34,9 @@ namespace NeuzStrap.Tests
         {
             // keys only, so the (always accent-colored) CPS text doesn't take part in this check
             var keysOnly = new Settings { Overlay = true, OverlayCps = false, OverlayKeys = true };
-            var pressed = new OverlayState { Keys = new[] { true, false, false, false, false, false } };
-            var idle = new OverlayState { Keys = new bool[InputMonitor.Watched.Length] };
+            var labels = new[] { "W", "A", "S", "D", "SPACE", "SHIFT" };
+            var pressed = new OverlayState { Labels = labels, Keys = new[] { true, false, false, false, false, false } };
+            var idle = new OverlayState { Labels = labels, Keys = new bool[labels.Length] };
 
             using (var a = OverlayRenderer.Render(keysOnly, pressed, 0))
             using (var b = OverlayRenderer.Render(keysOnly, idle, 0))
@@ -48,7 +49,7 @@ namespace NeuzStrap.Tests
 
             // with CPS on, the panel is taller and still the same size whatever you press
             var both = new Settings { Overlay = true, OverlayCps = true, OverlayKeys = true };
-            using (var withCps = OverlayRenderer.Render(both, new OverlayState { LeftCps = 9, Keys = pressed.Keys }, 0))
+            using (var withCps = OverlayRenderer.Render(both, new OverlayState { LeftCps = 9, Labels = labels, Keys = pressed.Keys }, 0))
             using (var keys = OverlayRenderer.Render(keysOnly, pressed, 0))
                 Assert.True(withCps.Height > keys.Height);
         }
@@ -86,6 +87,60 @@ namespace NeuzStrap.Tests
             using (var a = OverlayRenderer.Render(small, OverlayState.Sample, 0))
             using (var b = OverlayRenderer.Render(large, OverlayState.Sample, 0))
                 Assert.True(b.Width > a.Width && b.Height > a.Height);
+        }
+    }
+
+    public class KeyNameTests
+    {
+        [Theory]
+        [InlineData("W", 0x57)]
+        [InlineData("w", 0x57)]
+        [InlineData("5", 0x35)]
+        [InlineData("SPACE", 0x20)]
+        [InlineData("SHIFT", 0xA0)]
+        [InlineData("CTRL", 0xA2)]
+        [InlineData("F5", 0x74)]
+        [InlineData("MOUSE1", 0x01)]
+        [InlineData("NUM3", 0x63)]
+        [InlineData("UP", 0x26)]
+        public void Names_map_to_virtual_keys(string name, int vk) => Assert.Equal(vk, KeyNames.ToVirtualKey(name));
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("BANANA")]
+        [InlineData("F19")]
+        public void Unknown_names_are_rejected(string name) => Assert.False(KeyNames.IsSupported(name));
+
+        [Theory]
+        [InlineData(System.Windows.Forms.Keys.W, "W")]
+        [InlineData(System.Windows.Forms.Keys.D4, "4")]
+        [InlineData(System.Windows.Forms.Keys.Space, "SPACE")]
+        [InlineData(System.Windows.Forms.Keys.LShiftKey, "SHIFT")]
+        [InlineData(System.Windows.Forms.Keys.ControlKey, "CTRL")]
+        [InlineData(System.Windows.Forms.Keys.F3, "F3")]
+        [InlineData(System.Windows.Forms.Keys.Left, "LEFT")]
+        public void Key_presses_become_storable_names(System.Windows.Forms.Keys key, string expected) =>
+            Assert.Equal(expected, KeyNames.FromKeyPress(key));
+
+        [Fact]
+        public void Cleaning_drops_junk_duplicates_and_keeps_a_sane_list()
+        {
+            var cleaned = KeyNames.Clean(new[] { "w", "W", "space", "banana", "", "CTRL" });
+            Assert.Equal(new[] { "W", "SPACE", "CTRL" }, cleaned);
+            Assert.Equal(KeyNames.Default, KeyNames.Clean(new[] { "nope" }));   // never end up with nothing
+            Assert.Equal(KeyNames.Default, KeyNames.Clean(null));
+            Assert.True(KeyNames.Clean(Enumerable.Repeat("A", 1).Concat(Enumerable.Range(0, 30).Select(i => "F" + (i % 12 + 1)))).Count <= 10);
+        }
+
+        [Fact]
+        public void Overlay_draws_whatever_keys_you_picked()
+        {
+            Theme.Init("Sakura");
+            var s = new Settings { OverlayKeys = true, OverlayCps = false, OverlayKeyList = new List<string> { "MOUSE1", "F", "CTRL" } };
+            var state = OverlayState.SampleFor(s);
+            Assert.Equal(new[] { "LMB", "F", "CTRL" }, state.Labels);
+            using (var bmp = OverlayRenderer.Render(s, state, 0))
+                Assert.True(bmp.Width > 0 && bmp.Height > 0);
         }
     }
 

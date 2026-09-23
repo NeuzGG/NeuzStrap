@@ -90,6 +90,72 @@ namespace NeuzStrap.Tests
         }
     }
 
+    public class KeyboardLayoutTests
+    {
+        public KeyboardLayoutTests() => Theme.Init("Sakura");
+
+        [Fact]
+        public void Wasd_sits_like_a_real_keyboard()
+        {
+            var slots = KeyboardLayout.Arrange(new[] { "W", "A", "S", "D" }, out float width, out int rows);
+            var w = slots[0]; var a = slots[1]; var s = slots[2]; var d = slots[3];
+
+            Assert.Equal(2, rows);
+            Assert.True(w.Row < a.Row);                       // W is on the row above
+            Assert.True(a.Col < s.Col && s.Col < d.Col);      // A S D left to right
+            Assert.True(w.Col > a.Col && w.Col < s.Col);      // staggered: W sits above, between A and S
+            Assert.InRange(width, 3f, 5f);                    // A S D plus the stagger, about 3 keys wide
+        }
+
+        [Fact]
+        public void Wide_keys_are_wide_and_space_sits_at_the_bottom()
+        {
+            var slots = KeyboardLayout.Arrange(new[] { "W", "SHIFT", "SPACE" }, out _, out int rows);
+            Assert.Equal(1f, slots[0].Width);
+            Assert.True(slots[1].Width > 2f);                  // SHIFT
+            Assert.True(slots[2].Width > 4f);                  // SPACE
+            Assert.True(slots[2].Row > slots[1].Row);          // space row is below the shift row
+            Assert.Equal(4, rows);                             // W, (asdf), shift, space
+        }
+
+        [Fact]
+        public void Mouse_buttons_go_on_their_own_row_under_the_keys()
+        {
+            var slots = KeyboardLayout.Arrange(new[] { "W", "MOUSE1", "MOUSE2" }, out _, out _);
+            Assert.True(slots[1].Row > slots[0].Row);
+            Assert.True(slots[2].Col > slots[1].Col);
+        }
+
+        [Fact]
+        public void Keyboard_layout_is_taller_and_row_layout_is_wider()
+        {
+            var keyboard = new Settings { OverlayCps = false, OverlayKeys = true, OverlayKeyLayout = KeyLayout.Keyboard };
+            var row = new Settings { OverlayCps = false, OverlayKeys = true, OverlayKeyLayout = KeyLayout.Row };
+            using (var a = OverlayRenderer.Render(keyboard, OverlayState.SampleFor(keyboard), 0))
+            using (var b = OverlayRenderer.Render(row, OverlayState.SampleFor(row), 0))
+            {
+                Assert.True(a.Height > b.Height, $"keyboard {a.Height} vs row {b.Height}");
+                Assert.True(b.Width > a.Width, $"row {b.Width} vs keyboard {a.Width}");
+            }
+        }
+
+        [Fact]
+        public void Rainbow_is_a_gradient_across_the_panel_not_one_flat_color()
+        {
+            var s = new Settings { OverlayCps = false, OverlayKeys = true, OverlayKeyLayout = KeyLayout.Row, OverlayRainbow = true };
+            var state = OverlayState.SampleFor(s);
+            for (int i = 0; i < state.Keys.Length; i++) state.Keys[i] = true; // hold everything
+
+            using (var bmp = OverlayRenderer.Render(s, state, 0))
+            {
+                var left = bmp.GetPixel(bmp.Width / 8, bmp.Height / 2);
+                var right = bmp.GetPixel(bmp.Width * 7 / 8, bmp.Height / 2);
+                int diff = Math.Abs(left.R - right.R) + Math.Abs(left.G - right.G) + Math.Abs(left.B - right.B);
+                Assert.True(diff > 80, $"expected different colors across the panel, got {left} and {right}");
+            }
+        }
+    }
+
     public class KeyNameTests
     {
         [Theory]

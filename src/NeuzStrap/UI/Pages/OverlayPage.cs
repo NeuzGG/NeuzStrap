@@ -24,17 +24,21 @@ namespace NeuzStrap.UI.Pages
             Section("NeuzStrap overlay");
             _preview = Add(new OverlayPreview());
             ToggleRow("Show the overlay while playing", "A small panel drawn on top of Roblox. It can't appear over exclusive fullscreen, so use windowed or normal fullscreen.",
-                      () => S.Overlay, v => { S.Overlay = v; _preview.Invalidate(); }, Glyph.Monitor);
+                      () => S.Overlay, v => { S.Overlay = v; _preview.Relayout(); }, Glyph.Monitor);
             ToggleRow("Clicks per second (CPS)", "Counts your left clicks each second, plus right clicks when you use them.",
-                      () => S.OverlayCps, v => { S.OverlayCps = v; _preview.Invalidate(); }, Glyph.Mouse);
+                      () => S.OverlayCps, v => { S.OverlayCps = v; _preview.Relayout(); }, Glyph.Mouse);
             ToggleRow("Keys per second (KPS)", "How many times you press the keys below each second.",
-                      () => S.OverlayKps, v => { S.OverlayKps = v; _preview.Invalidate(); }, Glyph.Keyboard);
+                      () => S.OverlayKps, v => { S.OverlayKps = v; _preview.Relayout(); }, Glyph.Keyboard);
             ToggleRow("Key display", "Lights up each key below as you hold it.",
-                      () => S.OverlayKeys, v => { S.OverlayKeys = v; _preview.Invalidate(); }, Glyph.Keyboard);
+                      () => S.OverlayKeys, v => { S.OverlayKeys = v; _preview.Relayout(); }, Glyph.Keyboard);
+
+            DropdownRow("Key layout", "Keyboard puts them where they sit on a real keyboard (W above A S D). Row lines them up side by side.",
+                new Dropdown(200).Add("Keyboard", KeyLayout.Keyboard).Add("Single row", KeyLayout.Row),
+                () => S.OverlayKeyLayout, v => { S.OverlayKeyLayout = (KeyLayout)v; _preview.Relayout(); }, Glyph.Keyboard);
 
             Note("Your keys (click one to remove it):");
             _chips = Add(new KeyChips());
-            _chips.Changed += () => _preview.Invalidate();
+            _chips.Changed += () => _preview.Relayout();
             var reset = Add(new ButtonBar());
             reset.AddButton(new NButton("Reset to W A S D", ButtonKind.Ghost, Glyph.Refresh).FitToText(), (_, __) => _chips.ResetToDefault());
             ToggleRow("Rainbow colors", "Cycles the colors while you play. Off uses your accent color.",
@@ -43,10 +47,10 @@ namespace NeuzStrap.UI.Pages
             DropdownRow("Position", "Where it sits on the Roblox window.",
                 new Dropdown(200).Add("Top left", OverlayCorner.TopLeft).Add("Top center", OverlayCorner.TopCenter).Add("Top right", OverlayCorner.TopRight)
                                  .Add("Bottom left", OverlayCorner.BottomLeft).Add("Bottom center", OverlayCorner.BottomCenter).Add("Bottom right", OverlayCorner.BottomRight),
-                () => S.OverlayPosition, v => { S.OverlayPosition = (OverlayCorner)v; _preview.Invalidate(); }, Glyph.Monitor);
+                () => S.OverlayPosition, v => { S.OverlayPosition = (OverlayCorner)v; _preview.Relayout(); }, Glyph.Monitor);
             DropdownRow("Size", "How big the panel is.",
                 new Dropdown(200).Add("Small", OverlaySize.Small).Add("Medium", OverlaySize.Medium).Add("Large", OverlaySize.Large),
-                () => S.OverlayScale, v => { S.OverlayScale = (OverlaySize)v; _preview.Invalidate(); });
+                () => S.OverlayScale, v => { S.OverlayScale = (OverlaySize)v; _preview.Relayout(); });
 
             Section("Good to know");
             Note("\u2022 The overlay only checks whether the keys you picked (and the mouse buttons) are held down right now. " +
@@ -80,12 +84,24 @@ namespace NeuzStrap.UI.Pages
                 };
             }
 
-            public int MeasureHeight(int width) => Theme.S(150);
+            public int MeasureHeight(int width)
+            {
+                var s = Settings.Current;
+                if (!s.OverlayHasContent) return Theme.S(120);
+                using (var panel = OverlayRenderer.Render(s, OverlayState.SampleFor(s), 0, Theme.Scale))
+                    return Math.Max(Theme.S(120), panel.Height + Theme.S(48)); // room around the panel
+            }
+
+            public void Relayout()
+            {
+                Parent?.PerformLayout();
+                Invalidate();
+            }
 
             public void Restart()
             {
                 _hue = 0;
-                Invalidate();
+                Relayout();
                 if (Settings.Current.OverlayRainbow && !_timer.Enabled) _timer.Start();
             }
 

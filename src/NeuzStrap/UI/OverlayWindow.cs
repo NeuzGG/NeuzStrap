@@ -128,6 +128,7 @@ namespace NeuzStrap.UI
                 RightMouseDown = _input.RightMouseDown,
                 Keys = keys,
                 Labels = _input.Labels,
+                Names = _input.Names,
             };
             return OverlayRenderer.Render(_s, state, _hue, Theme.Scale);
         }

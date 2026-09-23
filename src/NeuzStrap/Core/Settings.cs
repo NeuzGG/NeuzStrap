@@ -14,6 +14,8 @@ namespace NeuzStrap.Core
     public enum CursorStyle { RobloxDefault, Classic, Sakura, BigArrow, Dot, Crosshair, Custom, Rgb }
     public enum OverlayCorner { TopLeft, TopCenter, TopRight, BottomLeft, BottomCenter, BottomRight }
     public enum OverlaySize { Small, Medium, Large }
+    /// <summary>How the keys are arranged: like a real keyboard, or one straight row.</summary>
+    public enum KeyLayout { Keyboard, Row }
 
     /// <summary>
     /// Everything the user can change. Saved as Settings.json.
@@ -81,6 +83,7 @@ namespace NeuzStrap.Core
         [JsonIgnore]
         public bool OverlayHasContent => Overlay && (OverlayCps || OverlayKps || OverlayKeys);
         public bool OverlayRainbow { get; set; } = false;
+        public KeyLayout OverlayKeyLayout { get; set; } = KeyLayout.Keyboard;
         public OverlayCorner OverlayPosition { get; set; } = OverlayCorner.TopLeft;
         public OverlaySize OverlayScale { get; set; } = OverlaySize.Medium;
 

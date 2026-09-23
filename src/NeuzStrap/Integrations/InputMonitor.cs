@@ -40,6 +40,7 @@ namespace NeuzStrap.Integrations
 
         public int KeyCount => _keys.Length;
         public string[] Labels => _keys.Select(k => k.Label).ToArray();
+        public string[] Names => _keys.Select(k => k.Name).ToArray();
         public bool IsDown(int index) => _down[index];
         public bool LeftMouseDown { get; private set; }
         public bool RightMouseDown { get; private set; }

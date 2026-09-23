@@ -6,9 +6,10 @@
   - **FPS counter**: switches on Roblox's own FPS / ping / memory panel (the Shift+F5 one). NeuzStrap can't measure
     Roblox's frame rate itself without injecting into the game, so it uses Roblox's counter instead.
   - **Overlay** on top of the game with a **CPS counter**, a **KPS counter** and a **key display** for the keys you
-    choose (any letters, numbers, F-keys, Space, Shift, Ctrl, Alt, arrows or mouse buttons - up to 10), in your accent
-    color or **rainbow**, in any of six positions and three sizes, with a live preview in the settings.
-    It's click-through, only shows while Roblox is in front, and can't appear over exclusive fullscreen.
+    choose (any letters, numbers, F-keys, Space, Shift, Ctrl, Alt, arrows or mouse buttons - up to 10).
+    Keys are drawn **as a mini keyboard** (W above A S D, wide Space and Shift) or in a single row, in your accent
+    color or as a **moving rainbow gradient**, in any of six positions and three sizes, with a live preview in the
+    settings. It's click-through, only shows while Roblox is in front, and can't appear over exclusive fullscreen.
 - New: **automatic updates**. NeuzStrap quietly installs new releases from GitHub in the background while Roblox
   starts; the new version is used from your next launch. Turn it off under Settings.
 - New: Discord Rich Presence **"Join server" button**, so friends land in the exact server you're in
